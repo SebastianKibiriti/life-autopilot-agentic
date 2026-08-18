@@ -52,3 +52,7 @@ Observe → Calculate → Reason → Act → Monitor → Re-evaluate → Learn
 ```
 
 The intended Google stack is Gemini via Vertex AI, Google ADK, Firestore, and Cloud Run. No Devpost registration or submission has been performed from this workspace yet.
+
+## Project knowledge base
+
+Start with [docs/knowledge-base/README.md](docs/knowledge-base/README.md). It is the durable context for future coding agents and includes the current implementation state, architecture, agent behavior, API contract, roadmap, testing workflow, decisions, disclosure record, and the prompt that defines how the knowledge base must be maintained.

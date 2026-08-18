@@ -1,0 +1,74 @@
+# API contract
+
+## Backend entry point
+
+Run from the repository root:
+
+```bash
+uvicorn app.main:app --app-dir backend --reload
+```
+
+Interactive API docs are available at `http://127.0.0.1:8000/docs`.
+
+## `GET /health`
+
+Response:
+
+```json
+{
+  "status": "ok",
+  "service": "life-autopilot-agentic"
+}
+```
+
+## `POST /api/v1/agent/evaluate`
+
+This is the current local contract. It evaluates one context snapshot. It is not yet a persistent autonomous scheduler.
+
+Request:
+
+```json
+{
+  "now": "2026-08-18T13:22:00+02:00",
+  "commitment": {
+    "title": "Database Systems",
+    "start_time": "2026-08-18T14:00:00+02:00",
+    "destination": "Engineering Building B"
+  },
+  "travel_minutes": 22,
+  "preparation_minutes": 12,
+  "arrival_buffer_minutes": 5,
+  "student_has_started_moving": false
+}
+```
+
+Fields:
+
+- `now`: evaluation timestamp.
+- `commitment`: title, start time, and human-readable destination.
+- `travel_minutes`: known route duration, or `null` when unavailable.
+- `preparation_minutes`: deterministic preparation estimate.
+- `arrival_buffer_minutes`: safety margin before the commitment.
+- `student_has_started_moving`: current movement signal used by the local policy.
+
+Response:
+
+```json
+{
+  "commitment_title": "Database Systems",
+  "preparation_at": "2026-08-18T13:21:00+02:00",
+  "leave_at": "2026-08-18T13:33:00+02:00",
+  "decision": "PREPARE",
+  "reason": "The preparation window is open.",
+  "route_provider": "provided"
+}
+```
+
+Possible `decision` values are `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, and `ESCALATE`.
+
+Possible `route_provider` values in the current implementation are `provided` and `unavailable`. Future adapters should add explicit values such as `routes` and `fallback`.
+
+## Planned contract evolution
+
+The next API revisions should introduce authenticated student identity, a commitment ID, structured location and route objects, an evaluation/event ID, notification action results, and durable state versioning. Preserve backward compatibility only if it does not make the demo contract confusing.
+
