@@ -1,0 +1,2 @@
+"""Life Autopilot backend package."""
+
