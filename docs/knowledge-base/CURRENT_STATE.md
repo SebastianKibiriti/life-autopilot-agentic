@@ -17,7 +17,9 @@ The repository contains the first local vertical slice. It is intentionally prov
 - Deterministic timing service in `backend/app/planner.py`.
 - Local bounded Taskmaster policy in `backend/app/agent.py`.
 - `CommitmentRepository` protocol and `InMemoryCommitmentRepository` fake in `backend/app/repositories.py`.
+- `FirestoreCommitmentRepository` adapter with an injected client boundary in `backend/app/repositories.py`; verified only against a local fake client.
 - `get_next_commitment` service in `backend/app/schedule.py`.
+- Student commitment create/list/next endpoints in `backend/app/main.py`.
 - Commitment persistence fields now include an optional ID and active/completed/cancelled status.
 - Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCALATE`.
 - Missing travel context escalates rather than inventing a route.
@@ -40,6 +42,7 @@ The repository contains the first local vertical slice. It is intentionally prov
 - The local evaluation endpoint models the decision contract but is not yet a persistent autonomous agent.
 - The Flutter dashboard is a shell only and is not connected to the backend.
 - The route duration is accepted as input, but no Routes adapter exists.
+- The Firestore SDK, emulator, and authenticated Google Cloud project are not configured, so the real adapter path is not verified.
 
 ## Not Started
 
@@ -47,7 +50,7 @@ The following are planned, not working:
 
 - Google ADK orchestration;
 - Gemini 3.5+ through Vertex AI;
-- Firestore persistence and agent memory;
+- Firestore persistence and agent memory against a real SDK/project;
 - Cloud Run deployment;
 - Google Routes API;
 - Google Places API;
@@ -80,7 +83,7 @@ The following are planned, not working:
 
 ## Last Verified Tests
 
-- `PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'` — 8 tests pass.
+- `PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'` — 13 tests pass.
 - FastAPI `TestClient` smoke check — `/health` and `PREPARE` evaluation pass.
 - `flutter test` — widget test passes.
 - `flutter analyze` — no issues reported.
@@ -95,7 +98,7 @@ Current HEAD after this slice; use `git log -1 --oneline` for the exact checkpoi
 
 ## Current development phase
 
-Phase 1 — commitment domain boundary. Local persistence and next-commitment retrieval are working; the next slice is student/commitment API endpoints.
+Phase 1 — commitment domain boundary. Local persistence, next-commitment retrieval, local API endpoints, and a fake-tested Firestore adapter are working; real Firestore verification is blocked by external setup.
 
 ## Contradictions reconciled
 

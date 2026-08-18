@@ -23,3 +23,19 @@
 - Verified: eight backend unit tests, backend compilation, and `git diff --check` pass.
 - Failed or deferred: API endpoints, Firestore persistence, authentication, and timezone policy remain outstanding.
 - Decision rationale: keep the repository boundary provider-independent so Firestore can be added without changing agent policy.
+
+## 2026-08-18 — Commitment API slice
+
+- Attempted: expose the local commitment boundary through a usable backend API.
+- Changed: added commitment creation, student-scoped listing, next-upcoming retrieval, validation, dependency overrides for tests, and API contract documentation.
+- Verified: eleven backend tests pass, including API flows and invalid input handling.
+- Failed or deferred: Firestore persistence and authenticated ownership are still not configured.
+- Decision rationale: keep the API dependent on the repository protocol so the storage provider can change without changing the endpoint or agent policy.
+
+## 2026-08-18 — Firestore adapter boundary
+
+- Attempted: advance persistence toward Firestore without requiring external credentials.
+- Changed: added `FirestoreCommitmentRepository` with an injected client boundary, Firestore-shaped student/commitment collection paths, and local fake-client tests.
+- Verified: thirteen backend tests pass, compilation succeeds, and the diff is clean.
+- Failed or deferred: real Firestore SDK/emulator/project verification cannot proceed because the SDK is not installed and no active gcloud account was detected.
+- Decision rationale: stop at the first external setup boundary while preserving a tested adapter contract for the next session.

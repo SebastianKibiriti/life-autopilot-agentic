@@ -43,6 +43,8 @@ Use FastAPI `TestClient` or run the service and call `/health` and `/api/v1/agen
 - preparation-window decision;
 - API health and evaluation smoke;
 - Flutter dashboard rendering.
+- commitment API create/list/next flows and validation.
+- Firestore-shaped adapter persistence and next-query behavior through a local fake client.
 
 ## Gaps to close
 

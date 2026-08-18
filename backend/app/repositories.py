@@ -52,3 +52,55 @@ class InMemoryCommitmentRepository:
             return None
         return min(upcoming, key=lambda commitment: commitment.start_time)
 
+
+class FirestoreCommitmentRepository:
+    """Firestore-backed implementation using an injected Firestore client.
+
+    The client is injected so this repository can be tested with a local fake and
+    the rest of the application does not depend directly on the Firestore SDK.
+    """
+
+    def __init__(self, client) -> None:
+        self.client = client
+
+    def _collection(self, student_id: str):
+        if not student_id.strip():
+            raise ValueError("student_id must not be empty")
+        return (
+            self.client.collection("students")
+            .document(student_id)
+            .collection("commitments")
+        )
+
+    def save(self, student_id: str, commitment: Commitment) -> Commitment:
+        stored = commitment.model_copy(deep=True)
+        document = (
+            self._collection(student_id).document(stored.id)
+            if stored.id
+            else self._collection(student_id).document()
+        )
+        stored.id = document.id
+        document.set(stored.model_dump(mode="json"))
+        return stored.model_copy(deep=True)
+
+    def list_for_student(self, student_id: str) -> list[Commitment]:
+        collection = self._collection(student_id)
+        commitments = []
+        for snapshot in collection.stream():
+            data = snapshot.to_dict()
+            data["id"] = snapshot.id
+            commitments.append(Commitment.model_validate(data))
+        return commitments
+
+    def get_next_commitment(
+        self, student_id: str, now: datetime
+    ) -> Commitment | None:
+        upcoming = [
+            commitment
+            for commitment in self.list_for_student(student_id)
+            if commitment.status == CommitmentStatus.ACTIVE
+            and commitment.start_time >= now
+        ]
+        if not upcoming:
+            return None
+        return min(upcoming, key=lambda commitment: commitment.start_time)

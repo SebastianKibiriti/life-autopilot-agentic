@@ -7,3 +7,5 @@
 - Documented the current FastAPI/Flutter foundation separately from planned Google Cloud integrations.
 - Captured the golden timing scenario, bounded decisions, domain model, API contract, roadmap, testing gaps, decisions, and reuse disclosure.
 - Added the commitment repository protocol, in-memory fake, next-commitment query, and repository tests.
+- Added student commitment create/list/next API endpoints with validation and tests.
+- Added a fake-tested Firestore repository adapter and documented the external configuration blocker.

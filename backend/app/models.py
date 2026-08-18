@@ -26,6 +26,16 @@ class Commitment(BaseModel):
     status: CommitmentStatus = CommitmentStatus.ACTIVE
 
 
+class CommitmentCreate(BaseModel):
+    title: str = Field(min_length=1)
+    start_time: datetime
+    destination: str = Field(min_length=1)
+    status: CommitmentStatus = CommitmentStatus.ACTIVE
+
+    def to_commitment(self) -> Commitment:
+        return Commitment(**self.model_dump())
+
+
 class EvaluationRequest(BaseModel):
     now: datetime
     commitment: Commitment

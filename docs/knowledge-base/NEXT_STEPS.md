@@ -4,9 +4,13 @@
 
 Implemented the commitment repository interface, local in-memory fake, and next-commitment query. The boundary is compatible with a later Firestore implementation.
 
+## Completed target
+
+Added student/commitment API endpoints on top of the repository boundary: create, list, next-upcoming, and request validation.
+
 ## Immediate target
 
-Add student/commitment API endpoints on top of the repository boundary.
+Run the Firestore repository adapter against the real Firestore SDK and an emulator or configured Google Cloud project, then wire it into the application configuration.
 
 ## Dependencies
 
@@ -25,14 +29,16 @@ Add student/commitment API endpoints on top of the repository boundary.
 
 ## Blockers
 
-- Firestore project and credentials are not configured.
+- `google-cloud-firestore` is declared in `backend/requirements.txt` but is not installed in the current Python environment.
+- `gcloud` is installed, but no active authenticated account was detected; the configured project is `gen-lang-client-0563563702`.
+- Firestore emulator or a usable Firestore database/credentials are not configured.
 - Student identity and authentication are not yet modelled.
 - Timezone policy needs an explicit decision before production persistence.
 
 ## Priority order
 
-1. Add student/commitment API endpoints and request validation.
-2. Add Firestore repository and emulator/local integration path.
-3. Add authenticated student identity and ownership boundaries.
-4. Add ADK/Gemini adapter around the tested decision contract.
-5. Add a route/context adapter boundary for the next commitment.
+1. Install/configure Firestore SDK and emulator or project credentials, then verify the adapter.
+2. Add authenticated student identity and ownership boundaries.
+3. Add ADK/Gemini adapter around the tested decision contract.
+4. Add a route/context adapter boundary for the next commitment.
+5. Add a real Flutter client for the commitment endpoints.

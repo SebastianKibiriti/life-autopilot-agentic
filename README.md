@@ -12,7 +12,9 @@ The first vertical slice is local and deliberately deterministic:
 - FastAPI backend;
 - structured student and commitment models;
 - commitment repository interface with an in-memory fake;
+- Firestore-shaped repository adapter with injected client boundary;
 - next-commitment query service;
+- student commitment create/list/next API endpoints;
 - pure departure-planning service;
 - Taskmaster decision contract;
 - `/health` and `/api/v1/agent/evaluate` endpoints;

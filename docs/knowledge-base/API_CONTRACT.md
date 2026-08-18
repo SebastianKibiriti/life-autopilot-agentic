@@ -68,7 +68,31 @@ Possible `decision` values are `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, and `E
 
 Possible `route_provider` values in the current implementation are `provided` and `unavailable`. Future adapters should add explicit values such as `routes` and `fallback`.
 
+## Commitment endpoints
+
+### `POST /api/v1/students/{student_id}/commitments`
+
+Creates a commitment in the configured repository and returns a generated ID.
+
+```json
+{
+  "title": "Database Systems",
+  "start_time": "2026-08-18T14:00:00Z",
+  "destination": "Engineering Building B",
+  "status": "active"
+}
+```
+
+Returns `201 Created` with the stored commitment.
+
+### `GET /api/v1/students/{student_id}/commitments`
+
+Returns commitments scoped to the supplied student ID.
+
+### `GET /api/v1/students/{student_id}/commitments/next?now=...`
+
+Returns the earliest active commitment at or after `now`, or JSON `null` when none exists. If `now` is omitted, the server uses the current UTC time.
+
 ## Planned contract evolution
 
 The next API revisions should introduce authenticated student identity, a commitment ID, structured location and route objects, an evaluation/event ID, notification action results, and durable state versioning. Preserve backward compatibility only if it does not make the demo contract confusing.
-
