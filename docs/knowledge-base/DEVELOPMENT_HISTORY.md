@@ -16,3 +16,10 @@
 - Failed or deferred: no code behavior changed; cloud integrations remain unverified.
 - Decision rationale: separate authoritative current facts from planned architecture and preserve the maintenance prompt as a repository artifact.
 
+## 2026-08-18 — Commitment repository slice
+
+- Attempted: implement the next documented task without requiring Firestore credentials.
+- Changed: added the `CommitmentRepository` protocol, in-memory implementation, generated IDs, status filtering, idempotent replacement by ID, and `get_next_commitment` service.
+- Verified: eight backend unit tests, backend compilation, and `git diff --check` pass.
+- Failed or deferred: API endpoints, Firestore persistence, authentication, and timezone policy remain outstanding.
+- Decision rationale: keep the repository boundary provider-independent so Firestore can be added without changing agent policy.

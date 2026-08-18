@@ -6,4 +6,4 @@
 - Recorded the fresh-repository identity and Taskmaster product definition.
 - Documented the current FastAPI/Flutter foundation separately from planned Google Cloud integrations.
 - Captured the golden timing scenario, bounded decisions, domain model, API contract, roadmap, testing gaps, decisions, and reuse disclosure.
-
+- Added the commitment repository protocol, in-memory fake, next-commitment query, and repository tests.

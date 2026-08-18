@@ -49,5 +49,4 @@ Keep arithmetic deterministic, state explicit, provider failures visible, secret
 
 ## Recommended next task
 
-Add repository interfaces and a local fake for the commitment domain, then introduce Firestore behind the same interface. Acceptance is a tested next-commitment query without requiring cloud credentials.
-
+Add student/commitment API endpoints on top of the tested repository boundary. Acceptance is a local API flow that can create commitments and return the next active upcoming commitment without Firestore credentials.

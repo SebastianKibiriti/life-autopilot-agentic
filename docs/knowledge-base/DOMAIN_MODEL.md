@@ -17,9 +17,11 @@ preferences: map
 Implemented fields:
 
 ```text
+id: string | null
 title: string
 start_time: datetime
 destination: string
+status: active | completed | cancelled
 ```
 
 Planned additions:
@@ -120,4 +122,3 @@ outcome: pending | delivered | acknowledged | failed | superseded
 ```
 
 Do not persist private chain-of-thought. Persist only operational facts and concise reasons.
-

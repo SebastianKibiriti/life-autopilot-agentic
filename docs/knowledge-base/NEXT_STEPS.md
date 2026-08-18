@@ -1,8 +1,12 @@
 # Next steps
 
+## Completed target
+
+Implemented the commitment repository interface, local in-memory fake, and next-commitment query. The boundary is compatible with a later Firestore implementation.
+
 ## Immediate target
 
-Implement the commitment repository interface and a local in-memory fake, then add a next-commitment query. Keep the repository shape compatible with a later Firestore implementation.
+Add student/commitment API endpoints on top of the repository boundary.
 
 ## Dependencies
 
@@ -27,9 +31,8 @@ Implement the commitment repository interface and a local in-memory fake, then a
 
 ## Priority order
 
-1. Add commitment repository protocol and local fake.
-2. Add next-commitment service and tests.
-3. Add student/commitment API endpoints.
-4. Add Firestore repository and emulator/local integration path.
-5. Add ADK/Gemini adapter around the tested decision contract.
-
+1. Add student/commitment API endpoints and request validation.
+2. Add Firestore repository and emulator/local integration path.
+3. Add authenticated student identity and ownership boundaries.
+4. Add ADK/Gemini adapter around the tested decision contract.
+5. Add a route/context adapter boundary for the next commitment.

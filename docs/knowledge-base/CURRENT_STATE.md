@@ -16,6 +16,9 @@ The repository contains the first local vertical slice. It is intentionally prov
 - Pydantic models in `backend/app/models.py`.
 - Deterministic timing service in `backend/app/planner.py`.
 - Local bounded Taskmaster policy in `backend/app/agent.py`.
+- `CommitmentRepository` protocol and `InMemoryCommitmentRepository` fake in `backend/app/repositories.py`.
+- `get_next_commitment` service in `backend/app/schedule.py`.
+- Commitment persistence fields now include an optional ID and active/completed/cancelled status.
 - Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCALATE`.
 - Missing travel context escalates rather than inventing a route.
 - Late and stationary context replans.
@@ -77,7 +80,7 @@ The following are planned, not working:
 
 ## Last Verified Tests
 
-- `PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'` — 4 tests pass.
+- `PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'` — 8 tests pass.
 - FastAPI `TestClient` smoke check — `/health` and `PREPARE` evaluation pass.
 - `flutter test` — widget test passes.
 - `flutter analyze` — no issues reported.
@@ -88,11 +91,11 @@ The following are planned, not working:
 
 ## Latest relevant commit
 
-`9c97420 feat: establish hackathon agent foundation`
+Current HEAD after this slice; use `git log -1 --oneline` for the exact checkpoint. The previous foundation baseline was `9c97420 feat: establish hackathon agent foundation`.
 
 ## Current development phase
 
-Phase 0 — local foundation and contracts. The next phase is commitment persistence and next-commitment retrieval.
+Phase 1 — commitment domain boundary. Local persistence and next-commitment retrieval are working; the next slice is student/commitment API endpoints.
 
 ## Contradictions reconciled
 

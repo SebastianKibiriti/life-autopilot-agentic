@@ -34,6 +34,10 @@ Use FastAPI `TestClient` or run the service and call `/health` and `/api/v1/agen
 ## Current test coverage
 
 - planner threshold calculation;
+- commitment repository scoping and ID assignment;
+- earliest active next-commitment query;
+- completed/cancelled filtering;
+- empty and past schedule behavior;
 - missing route escalation;
 - late stationary replanning;
 - preparation-window decision;
@@ -53,4 +57,3 @@ Use FastAPI `TestClient` or run the service and call `/health` and `/api/v1/agen
 - location permission states;
 - timetable extraction validation and user review;
 - end-to-end Flutter/backend flow.
-

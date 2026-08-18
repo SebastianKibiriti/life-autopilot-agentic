@@ -11,6 +11,8 @@ The first vertical slice is local and deliberately deterministic:
 - Flutter mobile shell;
 - FastAPI backend;
 - structured student and commitment models;
+- commitment repository interface with an in-memory fake;
+- next-commitment query service;
 - pure departure-planning service;
 - Taskmaster decision contract;
 - `/health` and `/api/v1/agent/evaluate` endpoints;

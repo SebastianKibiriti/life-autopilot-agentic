@@ -17,9 +17,10 @@ Acceptance: local backend and mobile shell run independently, and the golden tim
 
 ## Phase 1 — commitment domain
 
-- [ ] Student and commitment persistence.
-- [ ] Firestore repository interfaces and local fake.
-- [ ] Next-commitment query.
+- [ ] Student and commitment API endpoints.
+- [x] Local commitment repository interface and fake.
+- [x] Next-commitment query.
+- [ ] Firestore repository implementation.
 - [ ] Manual commitment creation.
 
 Acceptance: the backend returns the next structured commitment for a student.
@@ -73,4 +74,3 @@ Acceptance: the student does not need to open the app or ask a question for the 
 - [ ] Demo recording and hackathon disclosure.
 
 Acceptance: a judge can understand, run, and see the agent working, with visible Google Cloud proof.
-

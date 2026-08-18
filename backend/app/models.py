@@ -12,10 +12,18 @@ class AgentDecision(str, Enum):
     ESCALATE = "ESCALATE"
 
 
+class CommitmentStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 class Commitment(BaseModel):
+    id: str | None = None
     title: str = Field(min_length=1)
     start_time: datetime
     destination: str = Field(min_length=1)
+    status: CommitmentStatus = CommitmentStatus.ACTIVE
 
 
 class EvaluationRequest(BaseModel):
@@ -34,4 +42,3 @@ class EvaluationResponse(BaseModel):
     decision: AgentDecision
     reason: str
     route_provider: str
-
