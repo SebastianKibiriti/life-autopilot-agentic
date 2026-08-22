@@ -20,45 +20,45 @@ Acceptance: local backend and mobile shell run independently, and the golden tim
 - [x] Student and commitment API endpoints.
 - [x] Local commitment repository interface and fake.
 - [x] Next-commitment query.
-- [ ] Real Firestore repository verification and configuration (adapter exists; external setup required).
-- [ ] Manual commitment creation.
+- [x] Real Firestore repository verification and configuration.
+- [ ] Manual commitment creation in the Flutter app.
 
 Acceptance: the backend returns the next structured commitment for a student.
 
 ## Phase 2 — context and destination
 
-- [ ] Location permission-aware adapter.
-- [ ] Current-location endpoint.
-- [ ] Destination model and Places resolver.
-- [ ] Cache and confidence handling.
+- [x] Location permission-aware adapter.
+- [x] Current-location endpoint.
+- [x] Destination model and Places resolver.
+- [x] Cache and confidence handling.
 
-Acceptance: a commitment can be connected to a trustworthy destination and a current context or explicit failure state.
+Acceptance: a commitment can be connected to a trustworthy destination and a current context or explicit failure state. Unknown destinations escalate instead of inventing coordinates. Device GPS permissions remain a Flutter task.
 
 ## Phase 3 — routing and planning
 
-- [ ] Routes adapter for walking.
-- [ ] Explicit fallback estimate.
-- [ ] Route timestamp and provider metadata.
-- [ ] Timezone validation.
+- [x] Routes adapter for walking.
+- [x] Explicit fallback estimate.
+- [x] Route timestamp and provider metadata.
+- [x] Timezone validation.
 
 Acceptance: current location plus destination produces a route estimate or a visible, safe failure.
 
 ## Phase 4 — real agent and actions
 
 - [ ] Google ADK Taskmaster agent.
-- [ ] Vertex AI Gemini adapter.
+- [x] Vertex AI Gemini adapter.
 - [ ] Tool contracts for schedule, context, travel, memory, and actions.
-- [ ] Structured decision event log.
-- [ ] Local notification action.
+- [x] Structured decision event log.
+- [x] Local notification action.
 
-Acceptance: a context change causes a bounded agent decision and observable action result.
+Acceptance: a context change causes a bounded agent decision and observable action result. ADK remains optional because the GenAI SDK is the current qualifying Google agent framework.
 
 ## Phase 5 — autonomy and learning
 
 - [ ] Scheduler/background trigger.
 - [ ] Re-evaluation after missed departure.
 - [ ] Idempotent notification delivery.
-- [ ] Conservative preparation-profile updates.
+- [x] Conservative preparation-profile updates.
 - [ ] Activity timeline in Flutter.
 
 Acceptance: the student does not need to open the app or ask a question for the golden scenario to progress.

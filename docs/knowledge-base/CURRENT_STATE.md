@@ -1,10 +1,10 @@
 # Current implementation state
 
-Last reviewed: 2026-08-18
+Last reviewed: 2026-08-22
 
 ## Baseline
 
-The repository contains the first local vertical slice. It is intentionally provider-free and deterministic so the product contract can be tested before cloud credentials and external APIs are introduced.
+The repository contains a local Taskmaster vertical slice plus uncommitted-then-landed context adapters. Arithmetic stays deterministic. Gemini is used for notification copy and timetable parsing, with a local fallback when credentials are missing.
 
 ## Working
 
@@ -12,18 +12,25 @@ The repository contains the first local vertical slice. It is intentionally prov
 
 - FastAPI application in `backend/app/main.py`.
 - `GET /health` returns service health.
-- `POST /api/v1/agent/evaluate` accepts a minimal commitment and context snapshot.
-- Pydantic models in `backend/app/models.py`.
+- `POST /api/v1/agent/evaluate` evaluates a supplied snapshot (legacy contract).
+- `POST /api/v1/students/{student_id}/evaluate` runs the autonomous loop from stored commitment + location + preparation profile.
+- Commitment create/list/next endpoints.
+- Location GET/POST endpoints.
+- Agent event timeline endpoint.
+- Conservative preparation-profile learning endpoint.
+- Timetable extract/confirm endpoints (Gemini text when configured; empty result without a client).
+- Pydantic models including Location, Destination, TravelEstimate, PreparationProfile, AgentEvent, and AgentPhase.
 - Deterministic timing service in `backend/app/planner.py`.
-- Local bounded Taskmaster policy in `backend/app/agent.py`.
-- `CommitmentRepository` protocol and `InMemoryCommitmentRepository` fake in `backend/app/repositories.py`.
-- `FirestoreCommitmentRepository` adapter with an injected client boundary in `backend/app/repositories.py`; verified only against a local fake client.
-- `get_next_commitment` service in `backend/app/schedule.py`.
-- Student commitment create/list/next endpoints in `backend/app/main.py`.
-- Commitment persistence fields now include an optional ID and active/completed/cancelled status.
-- Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCALATE`.
-- Missing travel context escalates rather than inventing a route.
-- Late and stationary context replans.
+- Bounded Taskmaster policy in `backend/app/agent.py`.
+- `CommitmentRepository`, location, event, and preparation-profile repositories with in-memory and Firestore adapters.
+- `FirestoreCommitmentRepository` verified previously against project `gen-lang-client-0563563702`; live integration tests are opt-in (`FIRESTORE_INTEGRATION=true`).
+- Places resolver with campus cache and optional Places API; unknown destinations return no coordinates.
+- Walking Routes estimator with optional Routes API and labelled Haversine fallback.
+- Gemini client via `google-genai`, default model `gemini-3.5-flash`, deterministic copy fallback.
+- Idempotent in-process notification recorder (no FCM yet).
+- Timezone-aware datetime validation on API inputs.
+
+Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCALATE`.
 
 ### Mobile
 
@@ -39,54 +46,42 @@ The repository contains the first local vertical slice. It is intentionally prov
 
 ## Partially Working
 
-- The local evaluation endpoint models the decision contract but is not yet a persistent autonomous agent.
+- Gemini 3.5+ is the configured default but live Vertex/API calls are not verified in CI.
+- Places/Routes live APIs require keys; without keys, known campus labels resolve from cache and unknown labels escalate.
+- Notifications are persisted as events, not delivered to a device.
 - The Flutter dashboard is a shell only and is not connected to the backend.
-- The route duration is accepted as input, but no Routes adapter exists.
-- The Firestore SDK, emulator, and authenticated Google Cloud project are not configured, so the real adapter path is not verified.
+- There is still no background scheduler.
 
 ## Not Started
 
-The following are planned, not working:
-
-- Google ADK orchestration;
-- Gemini 3.5+ through Vertex AI;
-- Firestore persistence and agent memory against a real SDK/project;
+- Google ADK orchestration (GenAI SDK is present and qualifies as a Google agent framework);
 - Cloud Run deployment;
-- Google Routes API;
-- Google Places API;
-- current-location adapter;
 - Firebase Authentication;
-- local or remote notifications;
+- local or remote push notifications;
 - autonomous scheduler or background trigger;
-- timetable PDF/image extraction;
-- user review and timetable persistence;
-- behavioral learning;
-- activity event persistence;
+- timetable PDF/image extraction and review UI;
 - real Flutter-to-backend integration;
-- production secrets and cloud configuration.
+- production secrets and cloud configuration beyond local `.env`.
 
 ## Broken / Known Problems
 
-- No known failing test at the current baseline.
-- The service cannot yet demonstrate autonomous notifications because there is no scheduler or notification adapter.
-- Timezone normalization and DST handling are not enforced.
+- Default `unittest discover` skips live Firestore tests so the suite cannot hang on network.
+- Timezone DST conversion is not implemented; naive datetimes are rejected.
+- The service cannot yet demonstrate autonomous notifications without a caller hitting evaluate.
 
 ## External Configuration Required
 
 - Google Cloud project and billing/credits.
-- Vertex AI/Gemini access.
-- Google ADK runtime configuration.
-- Firestore database.
+- Vertex AI/Gemini access for live copy and extraction.
+- Firestore database if `USE_FIRESTORE=true`.
 - Cloud Run service account and deployment configuration.
-- Routes and Places credentials.
+- Routes and Places credentials for live geography.
 - Firebase configuration if authentication or messaging is enabled.
 
 ## Last Verified Tests
 
-- `PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'` — 13 tests pass.
-- FastAPI `TestClient` smoke check — `/health` and `PREPARE` evaluation pass.
-- `flutter test` — widget test passes.
-- `flutter analyze` — no issues reported.
+- `PYTHONPATH=backend .venv/bin/python -m unittest discover -s backend/tests -p 'test_*.py'` — 25 tests, 1 skipped (live Firestore), 0 failures.
+- FastAPI `TestClient` covers health/evaluation, commitment CRUD/next, location, learning, and naive datetime rejection.
 
 ## Current Git branch
 
@@ -94,22 +89,15 @@ The following are planned, not working:
 
 ## Latest relevant commit
 
-Current HEAD after this slice; use `git log -1 --oneline` for the exact checkpoint. The previous foundation baseline was `9c97420 feat: establish hackathon agent foundation`.
+Use `git log -1 --oneline` for the exact checkpoint.
 
 ## Current development phase
 
-Phase 1 — commitment domain boundary. Local persistence, next-commitment retrieval, local API endpoints, and a fake-tested Firestore adapter are working; real Firestore verification is blocked by external setup.
-
-## Contradictions reconciled
-
-- The roadmap names ADK, Gemini, Firestore, Cloud Run, location, routing, notifications, learning, and import as required or planned, but repository inspection confirms none of those integrations are implemented yet.
-- The current mobile dependency list does not include Riverpod; Riverpod remains planned.
-- The current API accepts a travel duration directly; it does not yet resolve destinations or call a route provider.
+Phases 2–4 in progress: context, routing, events, learning, and Gemini copy are in code. Scheduler, Flutter client, and Cloud Run remain.
 
 ## Known limitations
 
-- The current route input is already a duration, not a route-provider result.
-- Time arithmetic assumes timezone-aware values are supplied by callers; timezone normalization is not yet enforced.
-- The local policy is not an LLM agent and does not call ADK or Gemini.
-- There is no durable state, idempotency, notification delivery record, or retry behavior.
-- The mobile shell is a visual starting point, not a functional client.
+- Route fallback is Haversine walking, not live Google Routes, unless `ROUTES_API_KEY` is set.
+- The local policy does not call Google ADK.
+- Notification delivery is an event record, not a push channel.
+- The mobile shell is not a functional client.

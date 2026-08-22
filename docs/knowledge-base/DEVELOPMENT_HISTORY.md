@@ -39,3 +39,19 @@
 - Verified: thirteen backend tests pass, compilation succeeds, and the diff is clean.
 - Failed or deferred: real Firestore SDK/emulator/project verification cannot proceed because the SDK is not installed and no active gcloud account was detected.
 - Decision rationale: stop at the first external setup boundary while preserving a tested adapter contract for the next session.
+
+## 2026-08-21 — Real Firestore Integration
+
+- Attempted: connect the backend to a real Google Cloud Firestore project and verify the storage adapter.
+- Changed: added local `.env` configuration, loaded environment settings via `dotenv`, conditionally initialized a real Firestore client, and updated FastAPI dependency injection.
+- Verified: added `tests/test_firestore_integration.py` containing live CRUD tests on the target project (`gen-lang-client-0563563702`). All 14 tests (13 unit, 1 integration) pass. Verified live database writing via `curl` smoke test.
+- Failed or deferred: authentication and student ownership boundary remains deferred.
+- Decision rationale: verify the real adapter contract early using environment variables to ensure compatibility with Cloud Run before building downstream routing/ADK features.
+
+## 2026-08-22 — Context, routing, Gemini, events, and learning
+
+- Attempted: land the autonomous evaluation path without fabricating geography or depending on live Gemini in tests.
+- Changed: location APIs, Places/Routes adapters, Gemini 3.5 client with fallback, event/notification recorder, timetable extract/confirm, preparation-profile learning, timezone-aware validation.
+- Verified: 25 unit tests pass; live Firestore test is skipped unless `FIRESTORE_INTEGRATION=true`.
+- Failed or deferred: background scheduler, Flutter client, Cloud Run, live Gemini/Places/Routes verification, ADK, push delivery.
+- Decision rationale: unknown destinations must escalate; Gemini 3.5 Flash is the configured default to match hackathon rules; GenAI SDK is the current qualifying Google agent framework.

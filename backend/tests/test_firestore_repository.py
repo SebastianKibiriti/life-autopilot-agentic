@@ -24,8 +24,13 @@ class FakeDocument:
             f"{self.collection_ref.path}/{self.id}/{name}"
         )
 
-    def set(self, data):
-        self.collection_ref.documents[self.id] = dict(data)
+    def set(self, data, merge=False):
+        if merge and self.id in self.collection_ref.documents:
+            updated = dict(self.collection_ref.documents[self.id])
+            updated.update(dict(data))
+            self.collection_ref.documents[self.id] = updated
+        else:
+            self.collection_ref.documents[self.id] = dict(data)
 
 
 class FakeCollection:

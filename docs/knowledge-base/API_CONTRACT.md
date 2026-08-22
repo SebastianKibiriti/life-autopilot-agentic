@@ -93,6 +93,34 @@ Returns commitments scoped to the supplied student ID.
 
 Returns the earliest active commitment at or after `now`, or JSON `null` when none exists. If `now` is omitted, the server uses the current UTC time.
 
+## Location, events, learning, and autonomous evaluate
+
+### `POST /api/v1/students/{student_id}/location`
+
+Stores the current location snapshot (timezone-aware `captured_at`).
+
+### `GET /api/v1/students/{student_id}/location`
+
+Returns the latest location or JSON `null`.
+
+### `GET /api/v1/students/{student_id}/events`
+
+Returns recent `AgentEvent` records, newest first.
+
+### `POST /api/v1/students/{student_id}/evaluate`
+
+Loads the next commitment, current location, and preparation profile, then runs the bounded loop. Query params: `now`, `student_has_started_moving`.
+
+### `POST /api/v1/students/{student_id}/learn`
+
+Updates the destination-scoped preparation profile with a bounded average.
+
+### `POST /api/v1/students/{student_id}/timetable/extract` and `.../confirm`
+
+Extracts proposed commitments (Gemini when configured) and saves confirmed items.
+
+Naive datetimes are rejected with `422`.
+
 ## Planned contract evolution
 
 The next API revisions should introduce authenticated student identity, a commitment ID, structured location and route objects, an evaluation/event ID, notification action results, and durable state versioning. Preserve backward compatibility only if it does not make the demo contract confusing.

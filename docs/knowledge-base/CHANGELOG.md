@@ -1,5 +1,12 @@
 # Knowledge-base changelog
 
+## 2026-08-22
+
+- Landed location, Places/Routes adapters, Gemini 3.5 notification/timetable client, event log, notification recorder, and preparation-profile learning.
+- Unknown destinations now escalate instead of inventing coordinates.
+- Timezone-aware datetime validation is enforced on API inputs.
+- Live Firestore tests are opt-in so the default suite cannot hang.
+
 ## 2026-08-18
 
 - Created the project knowledge-base index and maintenance specification.

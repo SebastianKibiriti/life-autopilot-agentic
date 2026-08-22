@@ -5,10 +5,16 @@
 From the repository root:
 
 ```bash
-PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'
+PYTHONPATH=backend .venv/bin/python -m unittest discover -s backend/tests -p 'test_*.py'
 ```
 
-Expected baseline: 4 tests pass.
+Expected baseline: 25 tests pass locally, with the live Firestore test skipped unless explicitly enabled.
+
+To run live Firestore integration tests:
+
+```bash
+USE_FIRESTORE=true FIRESTORE_INTEGRATION=true PYTHONPATH=backend .venv/bin/python -m unittest backend/tests/test_firestore_integration.py
+```
 
 ```bash
 PYTHONPATH=backend python3 -m compileall -q backend
@@ -44,7 +50,8 @@ Use FastAPI `TestClient` or run the service and call `/health` and `/api/v1/agen
 - API health and evaluation smoke;
 - Flutter dashboard rendering.
 - commitment API create/list/next flows and validation.
-- Firestore-shaped adapter persistence and next-query behavior through a local fake client.
+- Firestore-shaped adapter persistence and next-query behavior through a local fake client; live Firestore tests are opt-in.
+- location round-trip, unknown destination escalation, notification dedup, and bounded preparation-profile learning.
 
 ## Gaps to close
 
