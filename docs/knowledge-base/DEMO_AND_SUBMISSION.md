@@ -31,5 +31,16 @@ Calendars know when class starts, but they do not continuously determine when th
 - Google Cloud proof in the demo video.
 - Disclosure of pre-existing work and third-party material.
 
-The current repository is not submission-ready: it lacks the real Google integrations, deployed service, hosted project, architecture asset, and demo video.
+## Minimal readiness checklist
 
+- [x] Public repository with setup instructions.
+- [x] Backend autonomous loop, event log, scheduler, and Firestore adapter.
+- [x] Flutter client passes `flutter analyze`.
+- [x] Backend tests pass locally.
+- [x] Cloud Run packaging is committed.
+- [ ] Deploy the backend to Cloud Run and record the URL.
+- [ ] Verify one live Vertex AI evaluation using the configured project.
+- [ ] Record a short demo video showing the autonomous decision and event log.
+- [ ] Upload the architecture diagram and video to Devpost.
+
+Firebase push notifications, production Places/Routes keys, and user authentication are optional for this MVP and should not delay submission.

@@ -4,11 +4,11 @@ Life Autopilot is a Taskmaster-style agent for keeping a student on schedule. It
 
 This is a new hackathon project inspired by the historical Life Autopilot product. The implementation is being rebuilt in this repository for the All Things Agentic Hackathon.
 
-## Current slice
+## Current MVP
 
 The first vertical slice is local and deliberately deterministic:
 
-- Flutter mobile shell;
+- Flutter mobile shell with a clean analyzer pass;
 - FastAPI backend;
 - structured student and commitment models;
 - commitment repository interface with an in-memory fake;
@@ -20,7 +20,7 @@ The first vertical slice is local and deliberately deterministic:
 - `/health` and `/api/v1/agent/evaluate` endpoints;
 - unit tests for normal, late, and missing-route conditions.
 
-Google ADK, Gemini on Vertex AI, Firestore, Routes, Places, and Cloud Run are represented as boundaries in the architecture and will be connected after the local contract is stable.
+Gemini on Vertex AI, Firestore, Routes, Places, and Cloud Run are connected behind optional service boundaries. Deterministic fallbacks keep the demo runnable when external API keys are unavailable.
 
 ## Run the backend
 
@@ -38,6 +38,10 @@ Run the tests with:
 ```bash
 PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'
 ```
+
+For the demo, create a commitment through `/docs`, post a location, then call the autonomous evaluation endpoint. The activity timeline at `/api/v1/students/{student_id}/events` shows the agent's decision and notification outcome.
+
+The Cloud Run image is defined in `Dockerfile`. Configure the values in `infrastructure/cloud-run.env.example` using Cloud Run environment variables; use the service account's application credentials rather than uploading a local key.
 
 ## Run the mobile shell
 

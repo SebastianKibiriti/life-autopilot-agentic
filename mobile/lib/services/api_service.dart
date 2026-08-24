@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
-import '../models/commitment.dart';
-import '../models/location.dart';
-import '../models/evaluation.dart';
+import '../core/models/commitment_model.dart';
+import '../core/models/location_model.dart';
+import '../core/models/evaluation_model.dart';
 
 class ApiService {
   final Dio _dio;

@@ -23,7 +23,18 @@ class AppLocation {
   Map<String, dynamic> toJson() => _$AppLocationToJson(this);
 
   Position toPosition() {
-    return Position(latitude: latitude, longitude: longitude);
+    return Position(
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: capturedAt,
+      accuracy: accuracyMeters ?? 0,
+      altitude: 0,
+      altitudeAccuracy: 0,
+      heading: 0,
+      headingAccuracy: 0,
+      speed: 0,
+      speedAccuracy: 0,
+    );
   }
 
   static AppLocation fromPosition(Position position, {double? accuracy}) {
@@ -55,3 +66,5 @@ class Destination {
   factory Destination.fromJson(Map<String, dynamic> json) => _$DestinationFromJson(json);
   Map<String, dynamic> toJson() => _$DestinationToJson(this);
 }
+
+typedef Location = AppLocation;

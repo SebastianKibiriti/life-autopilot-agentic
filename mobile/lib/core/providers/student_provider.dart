@@ -27,15 +27,13 @@ class StudentState {
 }
 
 class StudentNotifier extends Notifier<StudentState> {
-  static const String _studentIdKey = 'student_id';
-
   void setStudent(String id, {String? displayName}) {
-    final state = StudentState(
+    final nextState = StudentState(
       id: id,
       displayName: displayName,
       isAuthenticated: true,
     );
-    state = state;
+    state = nextState;
     // Save to local storage
     _saveStudentId(id);
   }
@@ -55,6 +53,9 @@ class StudentNotifier extends Notifier<StudentState> {
   bool get hasStudent => state.isAuthenticated && state.id.isNotEmpty;
 
   String get studentId => state.id;
+
+  @override
+  StudentState build() => StudentState(id: '');
 }
 
 final studentProvider = NotifierProvider<StudentNotifier, StudentState>(StudentNotifier.new);
