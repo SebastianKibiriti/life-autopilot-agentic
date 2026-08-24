@@ -6,13 +6,17 @@ import '../core/models/location_model.dart';
 import '../core/models/evaluation_model.dart';
 
 class ApiService {
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://life-autopilot-agentic-725797619054.us-central1.run.app',
+  );
   final Dio _dio;
   final String studentId;
   final Logger _logger = Logger();
 
   ApiService({required this.studentId})
       : _dio = Dio(BaseOptions(
-          baseUrl: 'http://127.0.0.1:8000',
+          baseUrl: defaultBaseUrl,
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
           headers: {
