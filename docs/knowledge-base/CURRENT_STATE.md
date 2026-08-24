@@ -26,7 +26,7 @@ The repository contains a local Taskmaster vertical slice plus uncommitted-then-
 - `FirestoreCommitmentRepository` verified previously against project `gen-lang-client-0563563702`; live integration tests are opt-in (`FIRESTORE_INTEGRATION=true`).
 - Places resolver with campus cache and optional Places API; unknown destinations return no coordinates.
 - Walking Routes estimator with optional Routes API and labelled Haversine fallback.
-- Gemini client via `google-genai`, default model `gemini-3.5-flash`, deterministic copy fallback.
+- Gemini client via `google-genai`, default model `gemini-3.5-flash` through Vertex AI `global`, deterministic copy fallback.
 - Idempotent in-process notification recorder (no FCM yet).
 - Timezone-aware datetime validation on API inputs.
 
@@ -46,7 +46,7 @@ Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCAL
 
 ## Partially Working
 
-- Gemini 3.5+ is the configured default but live Vertex/API calls are not verified in CI.
+- Gemini 3.5 Flash is the configured default and has been verified live through Vertex AI using the `global` location.
 - Places/Routes live APIs require keys; without keys, known campus labels resolve from cache and unknown labels escalate.
 - Notifications are persisted as events, not delivered to a device.
 - The Flutter dashboard is a shell only and is not connected to the backend.
