@@ -1,6 +1,29 @@
 # Life Autopilot knowledge base
 
-Life Autopilot Agentic is a fresh hackathon rebuild for the All Things Agentic Hackathon, targeting **The Taskmaster**. It is an autonomous student operations agent: it combines upcoming commitments, current location, travel time, and learned preparation behavior to decide when the student needs to act, then intervenes before the student asks.
+Life Autopilot Agentic is a fresh hackathon rebuild for the All Things Agentic Hackathon, targeting **The Taskmaster**. It is an autonomous student operations agent: it combines upcoming commitments, current location, travel time, and learned preparation behavior to decide when the student needs to act, then intervenes before the student asks. 
+
+NON-NEGOTIABLE PRODUCT PRINCIPLE
+
+Life Autopilot is not a chat application.
+
+Life Autopilot is not intended to be actively used throughout the day.
+
+The primary user experience occurs while the application is in the background.
+
+The agent is expected to initiate interactions.
+
+The user should not need to open the application in order for the core value of the product to be delivered.
+
+Opening the application should primarily serve:
+
+- onboarding
+- configuration
+- reviewing agent activity
+- viewing upcoming commitments
+- reviewing learned behavior
+- troubleshooting
+
+The core product value is delivered through autonomous monitoring, decision making, and intervention.
 
 ## Read first
 

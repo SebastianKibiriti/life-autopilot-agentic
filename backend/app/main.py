@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 
 try:
     import dotenv
@@ -33,9 +34,45 @@ from .repositories import (
     FirestorePreparationProfileRepository,
 )
 from .schedule import get_next_commitment
+from .scheduler import AgentScheduler
 from .timetable import extract_timetable
 
-app = FastAPI(title="Life Autopilot Agentic", version="0.2.0")
+agent_scheduler: AgentScheduler | None = None
+
+
+def _scheduler_tick(now: datetime) -> None:
+    for student_id in commitment_repository.list_student_ids():
+        commitment = get_next_commitment(commitment_repository, student_id=student_id, now=now)
+        if commitment is None:
+            continue
+        autonomous_evaluate(
+            student_id=student_id,
+            now=now,
+            commitment=commitment,
+            current_location=location_repository.get_current_location(student_id),
+            preparation_profile=profile_repository.get_profile(student_id, destination_key="default"),
+            student_has_started_moving=False,
+            event_repo=event_repository,
+            notification_service=notification_service,
+        )
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    global agent_scheduler
+    enabled = os.getenv("AGENT_SCHEDULER_ENABLED", "false").lower() == "true"
+    if enabled:
+        interval = int(os.getenv("AGENT_SCHEDULER_INTERVAL_SECONDS", "60"))
+        agent_scheduler = AgentScheduler(interval_seconds=interval, tick=_scheduler_tick)
+        agent_scheduler.start()
+    try:
+        yield
+    finally:
+        if agent_scheduler is not None:
+            agent_scheduler.stop()
+
+
+app = FastAPI(title="Life Autopilot Agentic", version="0.2.0", lifespan=lifespan)
 
 # ─── Repository wiring ────────────────────────────────────────────────────────
 use_firestore = os.getenv("USE_FIRESTORE", "false").lower() == "true"

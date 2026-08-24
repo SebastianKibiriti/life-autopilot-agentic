@@ -4,9 +4,9 @@
 
 Location, destination resolution, walking routes (live or labelled fallback), Gemini 3.5 copy, event log, notification recorder, timetable extract/confirm, and preparation-profile learning are implemented with unit tests.
 
-## Immediate target
+## Current checkpoint
 
-Add a background scheduler so the golden PREPARE → LEAVE → REPLAN loop progresses without a chat prompt or manual evaluate call.
+The autonomous evaluation path and reusable `AgentScheduler` are implemented and covered by backend tests. Cloud Run packaging is now present in the repository (`Dockerfile`, `.dockerignore`, and `infrastructure/cloud-run.env.example`). The remaining work is wiring the scheduler into the service lifecycle and completing the mobile client.
 
 ## Dependencies
 
@@ -14,7 +14,7 @@ Add a background scheduler so the golden PREPARE → LEAVE → REPLAN loop progr
 - Commitment, location, event, and profile repositories
 - Idempotent notification recorder
 
-## Acceptance criteria
+## Scheduler acceptance criteria
 
 - A configured interval evaluates students that have upcoming commitments.
 - Duplicate PREPARE/LEAVE notifications are suppressed within the dedup window.
@@ -29,8 +29,8 @@ Add a background scheduler so the golden PREPARE → LEAVE → REPLAN loop progr
 
 ## Priority order
 
-1. Add a background scheduler/autonomous trigger.
-2. Connect the Flutter client to commitment, location, evaluate, and event APIs.
-3. Add Cloud Run packaging and a submission architecture diagram.
-4. Verify live Gemini 3.5+ with Vertex or Gemini API credentials.
+1. Wire the scheduler into the FastAPI process, guarded by `AGENT_SCHEDULER_ENABLED`.
+2. Connect and stabilize the Flutter client against the commitment, location, evaluate, and event APIs.
+3. Build the Cloud Run image and deploy it to the configured project.
+4. Verify live Gemini 3.5+ with Vertex credentials and add the submission architecture diagram.
 5. Add authenticated student identity when it no longer blocks the demo.

@@ -1,5 +1,28 @@
 # Agent behavior
 
+NON-NEGOTIABLE PRODUCT PRINCIPLE
+
+Life Autopilot is not a chat application.
+
+Life Autopilot is not intended to be actively used throughout the day.
+
+The primary user experience occurs while the application is in the background.
+
+The agent is expected to initiate interactions.
+
+The user should not need to open the application in order for the core value of the product to be delivered.
+
+Opening the application should primarily serve:
+
+- onboarding
+- configuration
+- reviewing agent activity
+- viewing upcoming commitments
+- reviewing learned behavior
+- troubleshooting
+
+The core product value is delivered through autonomous monitoring, decision making, and intervention.
+
 ## Core loop
 
 ```text

@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.py[cod]
+*.egg-info
+.env
+mobile/.dart_tool
+mobile/build
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+docs/knowledge-base
+tests
