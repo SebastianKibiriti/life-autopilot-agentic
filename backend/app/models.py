@@ -29,6 +29,23 @@ class CommitmentStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class CalendarEvent(BaseModel):
+    id: str = Field(min_length=1)
+    summary: str = Field(min_length=1)
+    start_time: datetime
+    location: str | None = None
+    status: str = "confirmed"
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, value: datetime) -> datetime:
+        return require_timezone(value)
+
+
+class CalendarSyncRequest(BaseModel):
+    events: list[CalendarEvent] = Field(default_factory=list)
+
+
 class LocationProvider(str, Enum):
     GPS = "gps"
     SIMULATED = "simulated"

@@ -11,6 +11,7 @@ except ImportError:
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, status
 
 from .agent import autonomous_evaluate, evaluate
+from .calendar import sync_calendar_events
 from .location import InMemoryLocationRepository, FirestoreLocationRepository
 from .models import (
     Commitment,
@@ -20,6 +21,7 @@ from .models import (
     LearnRequest,
     Location,
     AgentEvent,
+    CalendarSyncRequest,
     TimetableExtractRequest,
     TimetableExtractResponse,
 )
@@ -128,6 +130,24 @@ def validate_student_id(student_id: str = Path(min_length=1)) -> str:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "life-autopilot-agentic"}
+
+
+@app.post(
+    "/api/v1/students/{student_id}/calendar/sync",
+    response_model=list[Commitment],
+    status_code=status.HTTP_200_OK,
+)
+def calendar_sync(
+    payload: CalendarSyncRequest,
+    student_id: str = Depends(validate_student_id),
+    repository: CommitmentRepository = Depends(get_commitment_repository),
+) -> list[Commitment]:
+    """Import normalized calendar events; the external provider is replaceable."""
+    return sync_calendar_events(
+        student_id=student_id,
+        events=payload.events,
+        commitment_repository=repository,
+    )
 
 
 # ─── Commitments ──────────────────────────────────────────────────────────────
