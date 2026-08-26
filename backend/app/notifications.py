@@ -8,7 +8,10 @@ Idempotency: two notifications for the same (student_id, commitment_id,
 decision) within the dedup window are considered duplicates; the second call
 returns the original body without recording a new event.
 """
+import os
 from datetime import datetime, timedelta, timezone
+
+import httpx
 
 from .models import AgentDecision, AgentEvent, EventOutcome
 
@@ -68,6 +71,19 @@ class NotificationService:
                 notification_title=notification_title,
                 notification_body=notification_body,
             )
+
+        webhook_url = os.getenv("GOOGLE_CHAT_WEBHOOK_URL")
+        if webhook_url:
+            try:
+                response = httpx.post(
+                    webhook_url,
+                    json={"text": f"{notification_title}\n{notification_body}"},
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+            except httpx.HTTPError:
+                # The audit event remains the source of truth if delivery fails.
+                pass
 
         event = AgentEvent(
             student_id=student_id,

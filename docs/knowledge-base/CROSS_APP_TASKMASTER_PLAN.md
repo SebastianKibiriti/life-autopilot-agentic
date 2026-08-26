@@ -100,6 +100,8 @@ Complete Milestone 1 before requesting Calendar write access. Complete Milestone
 
 ## Current status
 
-- Milestones 1–5: planned.
+- Milestone 1: code and local OAuth sync complete; first real sync verified.
+- Milestone 2: code and real Calendar write action verified.
+- Milestones 3–5: pending.
 - Existing autonomous multi-commitment cycle: available as the baseline for Milestone 4.
 - Current public repository: https://github.com/SebastianKibiriti/life-autopilot-agentic
