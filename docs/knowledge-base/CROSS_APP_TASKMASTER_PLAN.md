@@ -41,20 +41,21 @@ Each milestone ends with a verification checkpoint and a separate Git commit. Th
 
 **Commit:** `feat: let the agent write calendar actions`
 
-## Milestone 3 — Real notification channel
+## Milestone 3 — Notification and audit action
 
-**Outcome:** The agent delivers an external notification rather than only recording one.
+**Outcome:** The agent produces a visible intervention and durable action audit without requiring a Google Workspace account.
 
 **Build:**
 
-- Add one notification adapter, prioritizing Google Chat webhook for speed and demo reliability.
-- Keep the existing recorder as an audit sink and fallback.
+- Keep the existing Firestore recorder as the durable audit sink and demo notification surface.
+- Include the Gemini-generated message in the Calendar action description and API response.
+- Keep the optional Google Chat webhook adapter for Workspace accounts only.
 - Include decision, commitment, required action, and deep link/calendar reference.
 - Add delivery outcome and retry-safe deduplication.
 
-**External setup:** A Google Chat space webhook, or alternatively Firebase/Gmail credentials.
+**External setup:** None for the MVP. Google Chat requires a Workspace account and is optional; Firebase/Gmail can be added later.
 
-**Verify:** PREPARE, LEAVE, REPLAN, and ESCALATE produce visible external messages and remain idempotent.
+**Verify:** PREPARE, LEAVE, REPLAN, and ESCALATE produce a visible API response, Calendar action or recorded event, and remain idempotent.
 
 **Commit:** `feat: add external Taskmaster notifications`
 
@@ -102,6 +103,7 @@ Complete Milestone 1 before requesting Calendar write access. Complete Milestone
 
 - Milestone 1: code and local OAuth sync complete; first real sync verified.
 - Milestone 2: code and real Calendar write action verified.
-- Milestones 3–5: pending.
+- Milestone 3: core audit/action path is available; real Chat delivery is optional.
+- Milestones 4–5: pending.
 - Existing autonomous multi-commitment cycle: available as the baseline for Milestone 4.
 - Current public repository: https://github.com/SebastianKibiriti/life-autopilot-agentic

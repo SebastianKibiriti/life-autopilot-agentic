@@ -22,7 +22,7 @@ The agent receives several signals at once: multiple upcoming commitments, curre
 3. Create two commitments and post one simulated location.
 4. Call the autonomous-cycle endpoint and show one decision per commitment.
 5. Change movement state and call it again to show a different decision.
-6. Open the events endpoint and show the recorded actions/notifications.
+6. Open the events endpoint and show the recorded actions/notifications; show the Calendar action in Google Calendar.
 7. Show Cloud Run, Firestore, and Vertex AI consoles as proof of the Google stack.
 
 ## Evidence checklist
@@ -34,3 +34,5 @@ The agent receives several signals at once: multiple upcoming commitments, curre
 - [ ] Gemini 3.5 Flash via Vertex AI `global` is named explicitly.
 - [ ] Google Gen AI SDK, Cloud Run, and Firestore are named explicitly.
 - [ ] Demo shows autonomous action and event persistence, not only generated text.
+
+Google Chat is not required for this account. A personal Gmail account cannot create incoming Chat webhooks; Calendar actions plus the Firestore audit trail provide the visible cross-app action for the MVP.
