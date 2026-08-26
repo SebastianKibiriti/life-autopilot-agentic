@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime, timezone
 
 from app.agent import autonomous_evaluate
+from app.gemini import GeminiClient
 from app.models import (
     AgentDecision,
     Commitment,
@@ -127,6 +128,23 @@ class AutonomousLoopTests(unittest.TestCase):
         autonomous_evaluate(**kwargs)
         autonomous_evaluate(**kwargs)
         self.assertEqual(len(self.events.list_events("student-demo")), 1)
+
+    def test_replan_notification_states_expected_arrival_delay(self):
+        response = autonomous_evaluate(
+            student_id="student-demo",
+            now=datetime(2026, 8, 18, 11, 40, tzinfo=timezone.utc),
+            commitment=self.commitment,
+            current_location=self.location,
+            preparation_profile=self.profile,
+            event_repo=self.events,
+            notification_service=self.notifications,
+            places_resolver=PlacesResolver(),
+            routes_estimator=FakeRoutesEstimator(),
+            gemini=GeminiClient(),
+        )
+        self.assertEqual(response.decision, AgentDecision.REPLAN)
+        self.assertIn("arrive about", response.notification_body)
+        self.assertIn("Engineering Building B", response.notification_body)
 
 
 class PreparationLearningTests(unittest.TestCase):

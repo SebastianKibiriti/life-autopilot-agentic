@@ -125,6 +125,9 @@ def autonomous_evaluate(
             destination=commitment.destination,
             leave_at=plan.leave_at,
             preparation_at=plan.preparation_at,
+            now=now,
+            travel_minutes=travel_minutes,
+            commitment_start=commitment.start_time,
         )
         title_map = {
             AgentDecision.PREPARE: "⏰ Time to get ready",

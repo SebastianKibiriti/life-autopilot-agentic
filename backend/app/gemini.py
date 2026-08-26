@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from .models import AgentDecision
@@ -39,16 +39,25 @@ class GeminiClient:
         destination: str,
         leave_at: datetime | None = None,
         preparation_at: datetime | None = None,
+        now: datetime | None = None,
+        travel_minutes: int | None = None,
+        commitment_start: datetime | None = None,
     ) -> str:
         """Generates friendly, actionable copy using Gemini with deterministic fallback."""
         leave_str = leave_at.strftime("%H:%M") if leave_at else "soon"
         prep_str = preparation_at.strftime("%H:%M") if preparation_at else "now"
 
         # Deterministic fallback defaults
+        expected_delay = 0
+        if decision == AgentDecision.REPLAN and now and travel_minutes is not None:
+            expected_arrival = now + timedelta(minutes=travel_minutes)
+            if commitment_start:
+                expected_delay = max(0, round((expected_arrival - commitment_start).total_seconds() / 60))
+
         defaults = {
             AgentDecision.PREPARE: f"Time to get ready for {commitment_title}! You'll need to head out by {leave_str}.",
             AgentDecision.LEAVE: f"Time to head out for {commitment_title} at {destination}. Leave now to arrive on time.",
-            AgentDecision.REPLAN: f"Heads up: you're still at your current location. We've adjusted your plan for {commitment_title}.",
+            AgentDecision.REPLAN: f"Since you still haven't left, you'll arrive about {expected_delay} minutes later to {destination}.",
             AgentDecision.ESCALATE: f"Location or route unavailable for {commitment_title}. Please check your connection.",
             AgentDecision.NO_ACTION: "",
         }
@@ -68,6 +77,8 @@ class GeminiClient:
                 f"Action needed: {decision.value}\n"
                 f"Preparation starts: {prep_str}\n"
                 f"Departure time: {leave_str}\n"
+                f"Current time: {now.strftime('%H:%M') if now else 'unknown'}\n"
+                f"Estimated delay if stationary: {expected_delay} minutes\n"
                 f"Output only the notification text."
             )
             response = client.models.generate_content(
