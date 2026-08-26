@@ -53,7 +53,7 @@ Each milestone ends with a verification checkpoint and a separate Git commit. Th
 - Include decision, commitment, required action, and deep link/calendar reference.
 - Add delivery outcome and retry-safe deduplication.
 
-**External setup:** None for the MVP. Google Chat requires a Workspace account and is optional; Firebase/Gmail can be added later.
+**External setup:** Gmail OAuth send permission and a notification recipient. Google Chat requires a Workspace account and remains optional.
 
 **Verify:** PREPARE, LEAVE, REPLAN, and ESCALATE produce a visible API response, Calendar action or recorded event, and remain idempotent.
 

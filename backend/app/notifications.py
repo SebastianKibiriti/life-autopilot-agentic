@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 
 import httpx
 
+from .gmail import configured_gmail_provider
+
 from .models import AgentDecision, AgentEvent, EventOutcome
 
 
@@ -82,6 +84,14 @@ class NotificationService:
                 )
                 response.raise_for_status()
             except httpx.HTTPError:
+                # The audit event remains the source of truth if delivery fails.
+                pass
+
+        gmail = configured_gmail_provider()
+        if gmail:
+            try:
+                gmail.send(subject=notification_title, body=notification_body)
+            except Exception:
                 # The audit event remains the source of truth if delivery fails.
                 pass
 

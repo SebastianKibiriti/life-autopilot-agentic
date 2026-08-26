@@ -6,6 +6,7 @@ __pycache__/
 client_secret_*.json
 token.json
 google-calendar-token.json
+gmail-token.json
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
