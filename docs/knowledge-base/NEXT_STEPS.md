@@ -29,8 +29,7 @@ The autonomous evaluation path and reusable `AgentScheduler` are implemented and
 
 ## Priority order
 
-1. Wire the scheduler into the FastAPI process, guarded by `AGENT_SCHEDULER_ENABLED`.
-2. Connect and stabilize the Flutter client against the commitment, location, evaluate, and event APIs.
-3. Build the Cloud Run image and deploy it to the configured project.
-4. Verify live Gemini 3.5+ with Vertex credentials and add the submission architecture diagram.
-5. Add authenticated student identity when it no longer blocks the demo.
+1. Follow [CROSS_APP_TASKMASTER_PLAN.md](CROSS_APP_TASKMASTER_PLAN.md), beginning with Google Calendar ingestion.
+2. Add Calendar actions and one real notification channel.
+3. Run and verify the autonomous cross-app monitoring loop.
+4. Finalize the architecture diagram, demo evidence, and Devpost submission.
