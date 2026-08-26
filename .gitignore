@@ -3,9 +3,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .env
+client_secret_*.json
+token.json
+google-calendar-token.json
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 build/
-

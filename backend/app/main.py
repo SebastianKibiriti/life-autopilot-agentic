@@ -11,7 +11,7 @@ except ImportError:
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, status
 
 from .agent import autonomous_evaluate, evaluate
-from .calendar import sync_calendar_events
+from .calendar import GoogleCalendarProvider, sync_calendar_events
 from .location import InMemoryLocationRepository, FirestoreLocationRepository
 from .models import (
     Commitment,
@@ -146,6 +146,30 @@ def calendar_sync(
     return sync_calendar_events(
         student_id=student_id,
         events=payload.events,
+        commitment_repository=repository,
+    )
+
+
+@app.post(
+    "/api/v1/students/{student_id}/calendar/sync/google",
+    response_model=list[Commitment],
+)
+def google_calendar_sync(
+    student_id: str = Depends(validate_student_id),
+    repository: CommitmentRepository = Depends(get_commitment_repository),
+) -> list[Commitment]:
+    credentials_path = os.getenv(
+        "GOOGLE_CALENDAR_CREDENTIALS",
+        "client_secret_725797619054-gutqcc15kok56n1r83hodd9u2j6iual7.apps.googleusercontent.com.json",
+    )
+    provider = GoogleCalendarProvider(
+        credentials_path=credentials_path,
+        token_path=os.getenv("GOOGLE_CALENDAR_TOKEN", "google-calendar-token.json"),
+        calendar_id=os.getenv("GOOGLE_CALENDAR_ID", "primary"),
+    )
+    return sync_calendar_events(
+        student_id=student_id,
+        events=provider.upcoming_events(student_id=student_id),
         commitment_repository=repository,
     )
 

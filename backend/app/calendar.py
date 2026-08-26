@@ -1,7 +1,9 @@
 """Calendar ingestion boundary for the cross-app Taskmaster workflow."""
 from __future__ import annotations
 
-from datetime import datetime
+import os
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Protocol
 
 from .models import CalendarEvent, Commitment, CommitmentStatus
@@ -20,6 +22,71 @@ class InMemoryCalendarProvider:
 
     def upcoming_events(self, *, student_id: str) -> list[CalendarEvent]:
         return [event.model_copy(deep=True) for event in self.events]
+
+
+class GoogleCalendarProvider:
+    """Read-only Google Calendar provider using local OAuth credentials."""
+
+    SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+
+    def __init__(
+        self,
+        *,
+        credentials_path: str,
+        token_path: str = "google-calendar-token.json",
+        calendar_id: str = "primary",
+    ) -> None:
+        self.credentials_path = Path(credentials_path)
+        self.token_path = Path(token_path)
+        self.calendar_id = calendar_id
+
+    def _service(self):
+        from google.auth.transport.requests import Request
+        from google.oauth2.credentials import Credentials
+        from google_auth_oauthlib.flow import InstalledAppFlow
+        from googleapiclient.discovery import build
+
+        credentials = None
+        if self.token_path.exists():
+            credentials = Credentials.from_authorized_user_file(
+                str(self.token_path), self.SCOPES
+            )
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+        if not credentials or not credentials.valid:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                str(self.credentials_path), self.SCOPES
+            )
+            credentials = flow.run_local_server(port=0)
+        self.token_path.write_text(credentials.to_json())
+        return build("calendar", "v3", credentials=credentials, cache_discovery=False)
+
+    def upcoming_events(self, *, student_id: str) -> list[CalendarEvent]:
+        del student_id
+        service = self._service()
+        now = datetime.now(timezone.utc).isoformat()
+        response = service.events().list(
+            calendarId=self.calendar_id,
+            timeMin=now,
+            maxResults=50,
+            singleEvents=True,
+            orderBy="startTime",
+        ).execute()
+        events: list[CalendarEvent] = []
+        for item in response.get("items", []):
+            start = item.get("start", {}).get("dateTime")
+            if not start or not item.get("id") or not item.get("summary"):
+                continue
+            events.append(
+                CalendarEvent(
+                    id=item["id"],
+                    summary=item["summary"],
+                    start_time=start,
+                    location=item.get("location"),
+                    status=item.get("status", "confirmed"),
+                )
+            )
+        return events
 
 
 def sync_calendar_events(
