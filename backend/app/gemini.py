@@ -96,6 +96,25 @@ class GeminiClient:
         if not client:
             return []
 
+    def generate_companion_suggestion(self, *, profile: dict[str, Any], upcoming_context: str) -> dict[str, Any] | None:
+        """Generate structured companion content; callers retain a deterministic fallback."""
+        client = self._get_client()
+        if not client:
+            return None
+        try:
+            prompt = (
+                "Return ONLY valid JSON with keys main_recommendation, alternatives, rationale, "
+                "estimated_duration_minutes, location, preparation, uncertainty, follow_up_answers. "
+                f"Personal profile: {json.dumps(profile)}. Context: {upcoming_context}. "
+                "Suggest a safe, practical outdoor fitness activity for this student."
+            )
+            response = client.models.generate_content(model=self.model_name, contents=prompt)
+            raw = response.text.strip().removeprefix("```json").removesuffix("```").strip()
+            data = json.loads(raw)
+            return data if isinstance(data, dict) else None
+        except Exception:
+            return None
+
         try:
             prompt = (
                 f"Extract upcoming academic or personal commitments from this timetable text into a JSON list.\n"

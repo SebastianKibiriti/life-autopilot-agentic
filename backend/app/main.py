@@ -41,6 +41,7 @@ from .scheduler import AgentScheduler
 from .timetable import extract_timetable
 from .companion import CompanionMemory, create_fitness_suggestion
 from .campus import resolve_campus
+from .gemini import GeminiClient
 from .models import CompanionProfile, CompanionProfileUpdate, CompanionSuggestion, CampusPlace, CompanionCalendarSaveRequest
 
 agent_scheduler: AgentScheduler | None = None
@@ -101,6 +102,7 @@ else:
 
 notification_service = NotificationService(event_repository)
 companion_memory = CompanionMemory(_fs_client if use_firestore else None)
+companion_gemini = GeminiClient()
 
 
 # ─── Dependency providers ──────────────────────────────────────────────────────
@@ -148,7 +150,9 @@ def campus_resolve(query: str = Query(min_length=1)):
 
 @app.post("/api/v1/students/{student_id}/companion/fitness-suggestion", response_model=CompanionSuggestion)
 def fitness_suggestion(student_id: str = Depends(validate_student_id)):
-    suggestion = create_fitness_suggestion(student_id, companion_memory.profile(student_id))
+    profile = companion_memory.profile(student_id)
+    generated = companion_gemini.generate_companion_suggestion(profile=profile.model_dump(mode="json"), upcoming_context="upcoming nutrition timetable and fitness calendar events")
+    suggestion = create_fitness_suggestion(student_id, profile, generated=generated)
     return companion_memory.save_suggestion(suggestion)
 
 
