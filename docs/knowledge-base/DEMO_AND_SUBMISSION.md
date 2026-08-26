@@ -18,6 +18,8 @@ Calendars know when class starts, but they do not continuously determine when th
 10. Show the structured agent activity log.
 11. Show Google Cloud deployment proof.
 
+The stronger multi-signal demonstration uses the autonomous-cycle endpoint. It evaluates every active commitment for the student in one agent cycle, using the shared current location plus each commitment's destination, route estimate, preparation profile, current time, and movement state. See [SUBMISSION_EVIDENCE_PLAN.md](SUBMISSION_EVIDENCE_PLAN.md).
+
 ## Submission requirements to preserve
 
 - Gemini 3.5+.
@@ -38,8 +40,8 @@ Calendars know when class starts, but they do not continuously determine when th
 - [x] Flutter client passes `flutter analyze`.
 - [x] Backend tests pass locally.
 - [x] Cloud Run packaging is committed.
-- [ ] Deploy the backend to Cloud Run and record the URL.
-- [ ] Verify one live Vertex AI evaluation using the configured project.
+- [x] Deploy the backend to Cloud Run and record the URL.
+- [x] Verify one live Vertex AI evaluation using the configured project.
 - [ ] Record a short demo video showing the autonomous decision and event log.
 - [ ] Upload the architecture diagram and video to Devpost.
 

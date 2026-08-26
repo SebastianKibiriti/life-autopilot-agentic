@@ -244,6 +244,44 @@ def evaluate_autonomous(
     )
 
 
+@app.post(
+    "/api/v1/students/{student_id}/autonomous-cycle",
+    response_model=list[EvaluationResponse],
+)
+def autonomous_cycle(
+    student_id: str = Depends(validate_student_id),
+    now: datetime | None = Query(default=None),
+    student_has_started_moving: bool = Query(default=False),
+    commitment_repo: CommitmentRepository = Depends(get_commitment_repository),
+    loc_repo=Depends(get_location_repository),
+    ev_repo=Depends(get_event_repository),
+    prof_repo=Depends(get_profile_repository),
+    notif_service: NotificationService = Depends(get_notification_service),
+) -> list[EvaluationResponse]:
+    """Evaluate every active commitment in one autonomous background cycle."""
+    evaluation_time = now or datetime.now(timezone.utc)
+    current_location = loc_repo.get_current_location(student_id)
+    results: list[EvaluationResponse] = []
+    for commitment in commitment_repo.list_for_student(student_id):
+        status_value = getattr(commitment.status, "value", commitment.status)
+        if status_value != "active":
+            continue
+        profile = prof_repo.get_profile(student_id, destination_key="default")
+        results.append(
+            autonomous_evaluate(
+                student_id=student_id,
+                now=evaluation_time,
+                commitment=commitment,
+                current_location=current_location,
+                preparation_profile=profile,
+                student_has_started_moving=student_has_started_moving,
+                event_repo=ev_repo,
+                notification_service=notif_service,
+            )
+        )
+    return results
+
+
 # ─── Legacy evaluation endpoint (kept for tests) ──────────────────────────────
 @app.post("/api/v1/agent/evaluate", response_model=EvaluationResponse)
 def evaluate_agent(request: EvaluationRequest) -> EvaluationResponse:
