@@ -46,6 +46,18 @@ class CalendarSyncRequest(BaseModel):
     events: list[CalendarEvent] = Field(default_factory=list)
 
 
+class CalendarActionRequest(BaseModel):
+    commitment_id: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    start_time: datetime
+    description: str = ""
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, value: datetime) -> datetime:
+        return require_timezone(value)
+
+
 class LocationProvider(str, Enum):
     GPS = "gps"
     SIMULATED = "simulated"

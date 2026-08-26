@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Protocol
 
@@ -27,7 +27,7 @@ class InMemoryCalendarProvider:
 class GoogleCalendarProvider:
     """Read-only Google Calendar provider using local OAuth credentials."""
 
-    SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+    SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
     def __init__(
         self,
@@ -87,6 +87,17 @@ class GoogleCalendarProvider:
                 )
             )
         return events
+
+    def create_action(self, *, action_id: str, title: str, start_time: datetime, description: str) -> dict:
+        service = self._service()
+        event = {
+            "id": action_id.replace(":", "-"),
+            "summary": title,
+            "description": description,
+            "start": {"dateTime": start_time.isoformat()},
+            "end": {"dateTime": (start_time + timedelta(minutes=1)).isoformat()},
+        }
+        return service.events().insert(calendarId=self.calendar_id, body=event).execute()
 
 
 def sync_calendar_events(

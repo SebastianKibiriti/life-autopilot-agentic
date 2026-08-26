@@ -22,6 +22,7 @@ from .models import (
     Location,
     AgentEvent,
     CalendarSyncRequest,
+    CalendarActionRequest,
     TimetableExtractRequest,
     TimetableExtractResponse,
 )
@@ -171,6 +172,30 @@ def google_calendar_sync(
         student_id=student_id,
         events=provider.upcoming_events(student_id=student_id),
         commitment_repository=repository,
+    )
+
+
+@app.post("/api/v1/students/{student_id}/calendar/actions")
+def calendar_action(
+    payload: CalendarActionRequest,
+    student_id: str = Depends(validate_student_id),
+) -> dict:
+    """Create an autonomous preparation/departure action in Google Calendar."""
+    del student_id
+    credentials_path = os.getenv(
+        "GOOGLE_CALENDAR_CREDENTIALS",
+        "client_secret_725797619054-gutqcc15kok56n1r83hodd9u2j6iual7.apps.googleusercontent.com.json",
+    )
+    provider = GoogleCalendarProvider(
+        credentials_path=credentials_path,
+        token_path=os.getenv("GOOGLE_CALENDAR_TOKEN", "google-calendar-token.json"),
+        calendar_id=os.getenv("GOOGLE_CALENDAR_ID", "primary"),
+    )
+    return provider.create_action(
+        action_id=f"life-autopilot-{payload.commitment_id}",
+        title=payload.title,
+        start_time=payload.start_time,
+        description=payload.description,
     )
 
 
