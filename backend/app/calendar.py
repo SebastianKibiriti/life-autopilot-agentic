@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Protocol
@@ -90,8 +91,9 @@ class GoogleCalendarProvider:
 
     def create_action(self, *, action_id: str, title: str, start_time: datetime, description: str) -> dict:
         service = self._service()
+        event_id = hashlib.sha256(action_id.encode("utf-8")).hexdigest()[:32]
         event = {
-            "id": action_id.replace(":", "-"),
+            "id": event_id,
             "summary": title,
             "description": description,
             "start": {"dateTime": start_time.isoformat()},
