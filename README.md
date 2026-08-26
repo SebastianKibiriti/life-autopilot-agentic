@@ -41,6 +41,11 @@ PYTHONPATH=backend python3 -m unittest discover -s backend/tests -p 'test_*.py'
 
 For the demo, create a commitment through `/docs`, post a location, then call the autonomous evaluation endpoint. The activity timeline at `/api/v1/students/{student_id}/events` shows the agent's decision and notification outcome.
 
+For the Collaborative Partner flow, run
+`./scripts/run_nutrition_companion_demo.sh` to demonstrate persistent profile
+memory, campus lookup, proactive fitness suggestions, follow-up retrieval, and
+Calendar mutation.
+
 The Cloud Run image is defined in `Dockerfile`. Configure the values in `infrastructure/cloud-run.env.example` using Cloud Run environment variables; use the service account's application credentials rather than uploading a local key.
 
 ## Run the mobile shell

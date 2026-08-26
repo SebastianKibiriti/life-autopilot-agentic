@@ -4,7 +4,10 @@ Last reviewed: 2026-08-22
 
 ## Baseline
 
-The repository contains a local Taskmaster vertical slice plus uncommitted-then-landed context adapters. Arithmetic stays deterministic. Gemini is used for notification copy and timetable parsing, with a local fallback when credentials are missing.
+The repository contains a Collaborative Partner vertical slice plus context
+adapters. Arithmetic stays deterministic. Gemini is used for notification copy,
+timetable parsing, and structured companion suggestions, with a local fallback
+when credentials are missing.
 
 ## Working
 
@@ -28,6 +31,8 @@ The repository contains a local Taskmaster vertical slice plus uncommitted-then-
 - Walking Routes estimator with optional Routes API and labelled Haversine fallback.
 - Gemini client via `google-genai`, default model `gemini-3.5-flash` through Vertex AI `global`, deterministic copy fallback.
 - Idempotent in-process notification recorder (no FCM yet).
+- Companion profile and suggestion memory with in-memory and Firestore storage.
+- Curated campus graph alias resolution and stored follow-up answers.
 - Timezone-aware datetime validation on API inputs.
 
 Decisions currently supported: `NO_ACTION`, `PREPARE`, `LEAVE`, `REPLAN`, `ESCALATE`.
