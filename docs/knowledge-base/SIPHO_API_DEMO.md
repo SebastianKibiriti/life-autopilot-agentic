@@ -1,7 +1,6 @@
 # Sipho Real API Demo
 
-This is the hackathon-facing test for the supported consumer story. Sipho has
-planned an errand to collect imported flour from a supplier. It uses
+This is the hackathon-facing test for the supported lecture consumer story. It uses
 real HTTP calls against the running backend, the real decision engine, the
 configured Vertex/Gemini client, and Gmail when `GMAIL_NOTIFICATION_TO` is set.
 The route uses the application's known-destination fallback unless production
@@ -15,16 +14,10 @@ cd /Users/apple/Documents/Codex/2026-08-18/lo
 ./scripts/run_sipho_api_demo.sh
 ```
 
-The script creates a fictional supplier pickup 40 minutes ahead, posts Sipho's
-simulated bakery location, and evaluates the errand at three points in time:
-
-1. preparation window: the agent advises Sipho to get ready;
-2. missed departure: the agent sends an urgent re-plan message;
-3. movement detected: the agent re-evaluates and sends a leave-now message.
-
-Each stage uses the API and the event timeline proves the action was recorded.
-The response exposes the reason, route provider, and whether Gmail delivery
-succeeded. The timestamps are generated at runtime, so the test remains usable.
+The script creates a fictional lecture one hour ahead, posts a simulated
+bakery location, evaluates the commitment, checks the audit events,
+re-evaluates with `student_has_started_moving=true`, and records learning.
+The timestamps are generated at runtime, so the test remains usable.
 
 For a deployed test, set the URL without changing the script:
 
