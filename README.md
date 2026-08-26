@@ -1,6 +1,6 @@
 # Life Autopilot Agentic
 
-Life Autopilot is a Taskmaster-style agent for keeping a student on schedule. It watches an upcoming commitment and the student's context, calculates when preparation and departure must happen, chooses an intervention, and records the operational outcome.
+Life Autopilot is a persistent Collaborative Partner that learns a student's routines and context, then proactively coordinates schedules, travel, preparation, and personalized suggestions.
 
 This is a new hackathon project inspired by the historical Life Autopilot product. The implementation is being rebuilt in this repository for the All Things Agentic Hackathon.
 
@@ -16,7 +16,7 @@ The first vertical slice is local and deliberately deterministic:
 - next-commitment query service;
 - student commitment create/list/next API endpoints;
 - pure departure-planning service;
-- Taskmaster decision contract;
+- bounded companion decision contract;
 - `/health` and `/api/v1/agent/evaluate` endpoints;
 - unit tests for normal, late, and missing-route conditions.
 
@@ -53,7 +53,7 @@ flutter run
 
 ## Hackathon alignment
 
-The target track is **The Taskmaster**. The core loop is:
+The target track is **The Collaborative Partner**. The core loop is:
 
 ```text
 Observe → Calculate → Reason → Act → Monitor → Re-evaluate → Learn

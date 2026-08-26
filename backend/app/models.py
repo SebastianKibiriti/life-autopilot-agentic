@@ -232,6 +232,55 @@ class TimetableExtractResponse(BaseModel):
     notes: str | None = None
 
 
+class CompanionProfile(BaseModel):
+    student_id: str
+    interests: list[str] = Field(default_factory=list)
+    preferred_activities: list[str] = Field(default_factory=list)
+    accepted_suggestions: list[str] = Field(default_factory=list)
+    rejected_suggestions: list[str] = Field(default_factory=list)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CompanionProfileUpdate(BaseModel):
+    interests: list[str] = Field(default_factory=list)
+    preferred_activities: list[str] = Field(default_factory=list)
+    accepted_suggestions: list[str] = Field(default_factory=list)
+    rejected_suggestions: list[str] = Field(default_factory=list)
+
+
+class CampusPlace(BaseModel):
+    canonical_name: str
+    aliases: list[str] = Field(default_factory=list)
+    latitude: float
+    longitude: float
+    confidence: float = Field(ge=0, le=1)
+    source: str = "curated"
+
+
+class CompanionSuggestion(BaseModel):
+    id: str
+    student_id: str
+    main_recommendation: str
+    alternatives: list[str] = Field(default_factory=list)
+    rationale: str
+    estimated_duration_minutes: int = Field(ge=1)
+    location: str
+    preparation: list[str] = Field(default_factory=list)
+    uncertainty: str | None = None
+    follow_up_answers: dict[str, str] = Field(default_factory=dict)
+    source_memory: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CompanionCalendarSaveRequest(BaseModel):
+    start_time: datetime
+
+    @field_validator("start_time")
+    @classmethod
+    def validate_start_time(cls, value: datetime) -> datetime:
+        return require_timezone(value)
+
+
 class LearnRequest(BaseModel):
     actual_prep_minutes: int = Field(ge=0)
     actual_start_moving_at: datetime

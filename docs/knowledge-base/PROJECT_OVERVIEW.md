@@ -4,7 +4,7 @@
 
 - Project: Life Autopilot Agentic
 - Hackathon: All Things Agentic Hackathon
-- Target category: The Taskmaster
+- Target category: The Collaborative Partner
 - Repository status: fresh hackathon rebuild
 - Current baseline: `9c97420 feat: establish hackathon agent foundation`
 
@@ -28,9 +28,8 @@ Students often know that a commitment exists but still discover too late that pr
 
 ## Judging fit
 
-The build is aimed at the Taskmaster concept: an event-driven workflow with autonomous routing. It should visibly remove real-world friction, show disciplined state and failure handling, and provide a live, reproducible demonstration on Google Cloud once the cloud integration is implemented.
+The build is aimed at the Collaborative Partner concept: a persistent companion that retrieves context, learns preferences, synthesizes messy schedule and campus data, and takes lightweight actions. It should visibly personalize assistance, show disciplined state and failure handling, and provide a live, reproducible Google Cloud demonstration.
 
 ## Non-goals
 
 This hackathon version is not a general life-management suite, social network, budgeting tool, email manager, study-planning platform, campus knowledge graph, multi-agent system, or commercial-scale rewrite.
-

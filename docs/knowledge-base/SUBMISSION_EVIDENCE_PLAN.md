@@ -1,6 +1,6 @@
 # Submission evidence plan
 
-This is the practical evidence package for the All Things Agentic Hackathon Taskmaster submission.
+This is the practical evidence package for the All Things Agentic Hackathon Collaborative Partner submission.
 
 ## Google Cloud proof links
 

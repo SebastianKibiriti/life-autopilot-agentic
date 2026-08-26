@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Life Autopilot is an autonomous student operations agent that combines upcoming commitments, current location, travel time, and learned preparation behavior to determine when students need to act, then proactively intervenes before the student asks. This is a hackathon rebuild for the All Things Agentic Hackathon targeting The Taskmaster category, using Gemini 3.5+, Google ADK, and Google Cloud infrastructure.
+Life Autopilot is a persistent personal companion that combines schedules, current context, travel, learned behavior, and user feedback to proactively personalize assistance. This is a hackathon rebuild for the All Things Agentic Hackathon targeting The Collaborative Partner category, using Gemini 3.5+, Google Gen AI SDK, and Google Cloud infrastructure.
 
 ## Product Summary
 
@@ -35,7 +35,7 @@ Students often know that a commitment exists but still discover too late that pr
 
 **Current Local Implementation:**
 - FastAPI with 9 endpoints for commitments, location, evaluation, learning, timetable
-- Deterministic departure planner and bounded Taskmaster policy
+- Deterministic departure planner, bounded companion policy, and personalized suggestion memory
 - In-memory repositories with Firestore adapter boundaries
 - Gemini client wrapper with deterministic fallback
 - Unit tests covering golden scenario (14:00 class with 22min travel, 12min prep)

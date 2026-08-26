@@ -39,6 +39,9 @@ from .repositories import (
 from .schedule import get_next_commitment
 from .scheduler import AgentScheduler
 from .timetable import extract_timetable
+from .companion import CompanionMemory, create_fitness_suggestion
+from .campus import resolve_campus
+from .models import CompanionProfile, CompanionProfileUpdate, CompanionSuggestion, CampusPlace, CompanionCalendarSaveRequest
 
 agent_scheduler: AgentScheduler | None = None
 
@@ -97,6 +100,7 @@ else:
     profile_repository = InMemoryPreparationProfileRepository()
 
 notification_service = NotificationService(event_repository)
+companion_memory = CompanionMemory(_fs_client if use_firestore else None)
 
 
 # ─── Dependency providers ──────────────────────────────────────────────────────
@@ -125,6 +129,57 @@ def validate_student_id(student_id: str = Path(min_length=1)) -> str:
     if not cleaned:
         raise HTTPException(status_code=400, detail="student_id must not be empty")
     return cleaned
+
+
+@app.get("/api/v1/students/{student_id}/companion/profile", response_model=CompanionProfile)
+def companion_profile(student_id: str = Depends(validate_student_id)):
+    return companion_memory.profile(student_id)
+
+
+@app.put("/api/v1/students/{student_id}/companion/profile", response_model=CompanionProfile)
+def update_companion_profile(payload: CompanionProfileUpdate, student_id: str = Depends(validate_student_id)):
+    return companion_memory.save_profile(CompanionProfile(student_id=student_id, **payload.model_dump()))
+
+
+@app.get("/api/v1/campus/resolve", response_model=CampusPlace | None)
+def campus_resolve(query: str = Query(min_length=1)):
+    return resolve_campus(query)
+
+
+@app.post("/api/v1/students/{student_id}/companion/fitness-suggestion", response_model=CompanionSuggestion)
+def fitness_suggestion(student_id: str = Depends(validate_student_id)):
+    suggestion = create_fitness_suggestion(student_id, companion_memory.profile(student_id))
+    return companion_memory.save_suggestion(suggestion)
+
+
+@app.get("/api/v1/students/{student_id}/companion/suggestions/{suggestion_id}", response_model=CompanionSuggestion)
+def get_companion_suggestion(student_id: str = Depends(validate_student_id), suggestion_id: str = Path(min_length=1)):
+    suggestion = companion_memory.get_suggestion(student_id, suggestion_id)
+    if suggestion is None:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+    return suggestion
+
+
+@app.post("/api/v1/students/{student_id}/companion/suggestions/{suggestion_id}/calendar")
+def save_suggestion_to_calendar(payload: CompanionCalendarSaveRequest, student_id: str = Depends(validate_student_id), suggestion_id: str = Path(min_length=1)):
+    suggestion = companion_memory.get_suggestion(student_id, suggestion_id)
+    if suggestion is None:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+    credentials_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS", "client_secret_725797619054-gutqcc15kok56n1r83hodd9u2j6iual7.apps.googleusercontent.com.json")
+    provider = GoogleCalendarProvider(credentials_path=credentials_path, token_path=os.getenv("GOOGLE_CALENDAR_TOKEN", "google-calendar-token.json"), calendar_id=os.getenv("GOOGLE_CALENDAR_ID", "primary"))
+    return provider.create_action(action_id=f"companion-{suggestion.id}", title=suggestion.main_recommendation, start_time=payload.start_time, description=suggestion.rationale)
+
+
+@app.get("/api/v1/students/{student_id}/companion/suggestions/{suggestion_id}/follow-up")
+def companion_follow_up(question: str = Query(min_length=1), student_id: str = Depends(validate_student_id), suggestion_id: str = Path(min_length=1)):
+    suggestion = companion_memory.get_suggestion(student_id, suggestion_id)
+    if suggestion is None:
+        raise HTTPException(status_code=404, detail="Suggestion not found")
+    q = question.lower()
+    for key, answer in suggestion.follow_up_answers.items():
+        if key in q:
+            return {"answer": answer, "source": "stored_suggestion", "gemini_called": False}
+    return {"answer": "I can explain the recommendation, duration, or alternatives.", "source": "stored_suggestion", "gemini_called": False}
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────

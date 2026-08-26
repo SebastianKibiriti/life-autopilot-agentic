@@ -34,3 +34,11 @@ re-evaluation/learning.
 If location or destination is missing, `ESCALATE` is the correct safety result.
 With both present, the same commitment can produce a preparation or departure
 intervention and later a moving/re-evaluation result.
+
+## Companion Partner scenario
+
+Sipho's lecture and supplier-errand stories remain regression and scenario
+demonstrations. The primary Collaborative Partner story is now the separate
+[Nutrition Companion demo](NUTRITION_COMPANION_API_DEMO.md), which proves
+persistent preferences, campus knowledge, proactive fitness synthesis, a
+Calendar action, and fast follow-up from stored context.

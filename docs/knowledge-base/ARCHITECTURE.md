@@ -10,7 +10,7 @@ FastAPI
     │
     ├── Pydantic request/response models
     ├── deterministic departure planner
-    └── local bounded Taskmaster policy
+    └── local bounded companion policy
 ```
 
 ## Target hackathon architecture
@@ -31,7 +31,7 @@ Cloud Run: FastAPI + Google ADK
   ├── commitment and student services
   ├── agent state machine
   ├── deterministic DeparturePlanner
-  ├── ADK Taskmaster agent
+  ├── companion agent and personalization memory
   ├── Routes/Places adapters
   └── notification/action adapters
   │
@@ -78,4 +78,3 @@ Routes estimates travel; Places resolves human-readable destinations; location a
 ## Security and failure posture
 
 Secrets belong in runtime configuration, never source files. User identity must scope Firestore reads and writes. Provider failures should become explicit exceptional states, not fabricated values. Operational event logs may expose concise reasons and inputs, but never private chain-of-thought.
-
