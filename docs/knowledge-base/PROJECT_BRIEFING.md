@@ -44,8 +44,8 @@ Students often know that a commitment exists but still discover too late that pr
 
 **Frontend:** Flutter (Material 3), Riverpod, Dart
 **Backend:** Python 3.14, FastAPI, Google ADK, Gemini via Vertex AI
-**Database:** Firestore (planned), in-memory (current)
-**Cloud:** Google Cloud Platform (planned)
+**Database:** Firestore-backed persistence with in-memory local fallback
+**Cloud:** Google Cloud Platform with Cloud Run deployment
 **Testing:** unittest, FastAPI TestClient
 
 ## Current Verified State
@@ -62,7 +62,7 @@ Students often know that a commitment exists but still discover too late that pr
 - Preparation profile learning with conservative updates
 - Timetable extract/confirm endpoints
 - Timezone-aware datetime validation
-- 25 unit tests passing (1 Firestore integration test skipped)
+- 39+ unit tests passing (1 Firestore integration test skipped by default)
 
 **Partially Working:**
 - Gemini 3.5+ configured but not verified with live Vertex API calls

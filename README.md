@@ -33,6 +33,92 @@ uvicorn app.main:app --app-dir backend --reload
 
 Then open `http://127.0.0.1:8000/docs`.
 
+### Reproducible local setup
+
+Prerequisites: Python 3.11+, `curl`, and (for the companion demo) `jq`.
+
+```bash
+cd /Users/apple/Documents/Codex/2026-08-18/lo
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+export PYTHONPATH=backend
+```
+
+Run without external services using the in-memory fallback:
+
+```bash
+USE_FIRESTORE=false .venv/bin/uvicorn app.main:app --app-dir backend --port 8001
+```
+
+Verify the backend from another terminal:
+
+```bash
+curl http://127.0.0.1:8001/health
+```
+
+Open the local Swagger UI at `http://127.0.0.1:8001/docs`.
+
+For Vertex AI, Firestore, Calendar, and Gmail, configure the variables below
+before starting Uvicorn. Keep OAuth tokens and client secrets outside Git.
+
+```bash
+export USE_FIRESTORE=true
+export GOOGLE_CLOUD_PROJECT=gen-lang-client-0563563702
+export GOOGLE_CLOUD_LOCATION=global
+export GOOGLE_GENAI_USE_VERTEXAI=true
+export GEMINI_MODEL=gemini-3.5-flash
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+export GOOGLE_CALENDAR_CREDENTIALS="$PWD/client_secret_725797619054-gutqcc15kok56n1r83hodd9u2j6iual7.apps.googleusercontent.com.json"
+export GOOGLE_CALENDAR_TOKEN="$PWD/google-calendar-token.json"
+export GMAIL_NOTIFICATION_TO="your-real-email@gmail.com"
+export GMAIL_TOKEN="$PWD/gmail-token.json"
+```
+
+The complete test suite is:
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m unittest discover -s backend/tests -v
+```
+
+Run the reproducible scenarios while the backend is running:
+
+```bash
+./scripts/run_sipho_api_demo.sh
+./scripts/run_supplier_errand_demo.sh
+./scripts/run_nutrition_companion_demo.sh
+./scripts/run_self_evolution_demo.sh
+```
+
+Use `USE_FIRESTORE=true` to demonstrate persistent user memory and evolution
+records. Without it, the same APIs run locally with in-memory repositories.
+Calendar and Gmail demos may open an OAuth consent flow on first use.
+
+### Cloud Run deployment
+
+From the repository root:
+
+```bash
+gcloud run deploy life-autopilot-agentic \
+  --source . \
+  --region us-central1 \
+  --project gen-lang-client-0563563702 \
+  --set-env-vars="USE_FIRESTORE=true,GOOGLE_CLOUD_PROJECT=gen-lang-client-0563563702,GOOGLE_CLOUD_LOCATION=global,GOOGLE_GENAI_USE_VERTEXAI=true,GEMINI_MODEL=gemini-3.5-flash,FIRESTORE_DATABASE=(default)" \
+  --allow-unauthenticated
+```
+
+Verify the deployed service:
+
+```bash
+curl https://life-autopilot-agentic-725797619054.us-central1.run.app/health
+```
+
+The deployed Swagger UI is at
+`https://life-autopilot-agentic-725797619054.us-central1.run.app/docs`.
+Local Calendar/Gmail OAuth token files are not copied to Cloud Run; use
+Secret Manager or another production-safe credential flow for deployed
+cross-app actions. Never commit `.env`, client-secret JSON, or token files.
+
 Run the tests with:
 
 ```bash

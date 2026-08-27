@@ -2,10 +2,10 @@
 
 | Service | Purpose | Current use | Configuration | Fallback / failure | Hackathon mandatory |
 |---|---|---|---|---|---|
-| Gemini 3.5+ via Vertex AI | Contextual reasoning and timetable extraction | Not started | Google Cloud project, Vertex AI access, model name | Bounded deterministic policy; escalate when reasoning unavailable | Yes, Gemini required |
+| Gemini 3.5+ via Vertex AI | Contextual reasoning, extraction, and companion suggestions | Implemented and verified | Google Cloud project, Vertex AI access, model name | Deterministic fallback | Yes, Gemini required |
 | Google ADK | Agent orchestration and tool execution | Not started | ADK runtime and model configuration | Local policy/fake tools during development | Yes, or another qualifying Google framework |
-| Cloud Run | Host FastAPI + ADK backend | Not started | Project, region, service account, deploy command | Local Uvicorn for development | Google Cloud infrastructure required; Cloud Run planned |
-| Firestore | Operational source of truth and agent memory | Adapter implemented and fake-tested; real SDK/project not verified | `google-cloud-firestore`, project/database, service account, security rules | Local in-memory repository | Google Cloud infrastructure required; Firestore planned |
+| Cloud Run | Host FastAPI backend | Deployed and serving | Project, region, service account, deploy command | Local Uvicorn for development | Google Cloud infrastructure required |
+| Firestore | Operational source of truth, companion memory, and evolution records | Implemented; live integration is opt-in in tests | `google-cloud-firestore`, project/database, service account, security rules | Local in-memory repository | Google Cloud infrastructure required |
 | Google Routes API | Travel duration and distance | Not started; duration is currently supplied directly | API credentials/key and enabled API | Clearly labelled fallback or escalation | No, but central to product behavior |
 | Google Places API | Destination resolution | Not started | API credentials/key and enabled API | Manual destination, cache, or `DESTINATION_UNKNOWN` | No |
 | Device location | Current student context | Not started | Mobile permission and platform configuration | `LOCATION_UNAVAILABLE`; no fabricated coordinates | No |

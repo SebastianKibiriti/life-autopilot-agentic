@@ -42,7 +42,7 @@ The stronger multi-signal demonstration uses the autonomous-cycle endpoint. It e
 - [x] Cloud Run packaging is committed.
 - [x] Deploy the backend to Cloud Run and record the URL.
 - [x] Verify one live Vertex AI evaluation using the configured project.
-- [ ] Record a short demo video showing the autonomous decision and event log.
+- [ ] Record a short demo video showing personalization, autonomous decision, and event log.
 - [ ] Upload the architecture diagram and video to Devpost.
 
 Firebase push notifications, production Places/Routes keys, and user authentication are optional for this MVP and should not delay submission.
