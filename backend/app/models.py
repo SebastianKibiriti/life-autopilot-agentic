@@ -281,6 +281,60 @@ class CompanionCalendarSaveRequest(BaseModel):
         return require_timezone(value)
 
 
+class PolicyStatus(str, Enum):
+    CANDIDATE = "candidate"
+    ACTIVE = "active"
+    REJECTED = "rejected"
+    ROLLED_BACK = "rolled_back"
+
+
+class AgentPolicy(BaseModel):
+    policy_id: str
+    version: int
+    content: str
+    score: float = 0.0
+    status: PolicyStatus = PolicyStatus.CANDIDATE
+    parent_version: int | None = None
+    reason: str = ""
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class EvaluationCase(BaseModel):
+    case_id: str
+    title: str
+    category: str
+    input_context: dict = Field(default_factory=dict)
+    expected_behavior: str
+    safety_constraints: list[str] = Field(default_factory=list)
+
+
+class EvaluationResult(BaseModel):
+    case_id: str
+    passed: bool
+    score: float = Field(ge=0, le=1)
+    checks: dict[str, bool] = Field(default_factory=dict)
+    failure_reason: str | None = None
+
+
+class EvaluationRun(BaseModel):
+    run_id: str
+    policy_version: int
+    results: list[EvaluationResult] = Field(default_factory=list)
+    overall_score: float = 0.0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class EvolutionProposal(BaseModel):
+    proposal_id: str
+    candidate: AgentPolicy
+    baseline_score: float
+    candidate_score: float
+    eligible: bool
+    reason: str
+    status: str = "proposed"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class LearnRequest(BaseModel):
     actual_prep_minutes: int = Field(ge=0)
     actual_start_moving_at: datetime

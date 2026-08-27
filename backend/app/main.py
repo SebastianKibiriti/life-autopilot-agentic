@@ -43,6 +43,8 @@ from .companion import CompanionMemory, create_fitness_suggestion
 from .campus import resolve_campus
 from .gemini import GeminiClient
 from .models import CompanionProfile, CompanionProfileUpdate, CompanionSuggestion, CampusPlace, CompanionCalendarSaveRequest
+from .models import AgentPolicy, EvaluationRun, EvolutionProposal
+from .evolution import EvolutionStore
 
 agent_scheduler: AgentScheduler | None = None
 
@@ -103,6 +105,7 @@ else:
 notification_service = NotificationService(event_repository)
 companion_memory = CompanionMemory(_fs_client if use_firestore else None)
 companion_gemini = GeminiClient()
+evolution_store = EvolutionStore(_fs_client if use_firestore else None)
 
 
 # ─── Dependency providers ──────────────────────────────────────────────────────
@@ -131,6 +134,45 @@ def validate_student_id(student_id: str = Path(min_length=1)) -> str:
     if not cleaned:
         raise HTTPException(status_code=400, detail="student_id must not be empty")
     return cleaned
+
+
+@app.get("/api/v1/agent/policy", response_model=AgentPolicy)
+def get_agent_policy():
+    return evolution_store.active_policy()
+
+
+@app.post("/api/v1/evaluations/run", response_model=EvaluationRun)
+def run_evaluation():
+    return evolution_store.evaluate()
+
+
+@app.get("/api/v1/evaluations/{run_id}", response_model=EvaluationRun)
+def get_evaluation(run_id: str):
+    if run_id not in evolution_store.runs: raise HTTPException(status_code=404, detail="Evaluation run not found")
+    return evolution_store.runs[run_id]
+
+
+@app.post("/api/v1/evolution/proposals", response_model=EvolutionProposal)
+def create_evolution_proposal():
+    return evolution_store.propose()
+
+
+@app.get("/api/v1/evolution/proposals", response_model=list[EvolutionProposal])
+def list_evolution_proposals():
+    return list(evolution_store.proposals.values())
+
+
+@app.post("/api/v1/evolution/proposals/{proposal_id}/promote", response_model=AgentPolicy)
+def promote_evolution_proposal(proposal_id: str):
+    if proposal_id not in evolution_store.proposals: raise HTTPException(status_code=404, detail="Proposal not found")
+    try: return evolution_store.promote(proposal_id)
+    except ValueError as exc: raise HTTPException(status_code=409, detail=str(exc))
+
+
+@app.post("/api/v1/evolution/proposals/{proposal_id}/reject", response_model=EvolutionProposal)
+def reject_evolution_proposal(proposal_id: str):
+    if proposal_id not in evolution_store.proposals: raise HTTPException(status_code=404, detail="Proposal not found")
+    return evolution_store.reject(proposal_id)
 
 
 @app.get("/api/v1/students/{student_id}/companion/profile", response_model=CompanionProfile)
