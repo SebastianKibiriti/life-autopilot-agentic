@@ -2,7 +2,7 @@
 
 Life Autopilot is a persistent Collaborative Partner that learns a student's routines and context, then proactively coordinates schedules, travel, preparation, and personalized suggestions.
 
-This is a new hackathon project inspired by the historical Life Autopilot product. The implementation is being rebuilt in this repository for the All Things Agentic Hackathon.
+This is a new hackathon project inspired by a older similar project. The implementation is being rebuilt in this repository for the All Things Agentic Hackathon.
 
 ## Current MVP
 
@@ -32,6 +32,55 @@ uvicorn app.main:app --app-dir backend --reload
 ```
 
 Then open `http://127.0.0.1:8000/docs`.
+
+## Judge quick start (copy and paste)
+
+The fastest way to review the deployed project requires no local installation:
+
+```bash
+curl https://life-autopilot-agentic-725797619054.us-central1.run.app/health
+open https://life-autopilot-agentic-725797619054.us-central1.run.app/docs
+```
+
+The second command opens the hosted Swagger UI. In Swagger, try `GET /health`,
+then `POST /api/v1/students/{student_id}/evaluate` with
+`student_id=demo-student`. The public service is the hosted API/UI; the Flutter
+directory is an optional local mobile shell and is not required for this review.
+
+To reproduce the project locally from a fresh checkout, a judge should run:
+
+```bash
+git clone https://github.com/SebastianKibiriti/life-autopilot-agentic.git
+cd life-autopilot-agentic
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r backend/requirements.txt
+export PYTHONPATH=backend
+export USE_FIRESTORE=false
+python -m uvicorn app.main:app --app-dir backend --port 8001
+```
+
+In a second terminal, from the same repository directory, verify and open the
+local interface:
+
+```bash
+cd life-autopilot-agentic
+curl http://127.0.0.1:8001/health
+open http://127.0.0.1:8001/docs
+```
+
+To run the automated checks, stop the server only if needed, activate the
+virtual environment, and run:
+
+```bash
+cd life-autopilot-agentic
+source .venv/bin/activate
+PYTHONPATH=backend python -m unittest discover -s backend/tests -p 'test_*.py' -v
+```
+
+The local fallback mode does not require Google credentials. Vertex AI,
+Firestore, Calendar, and Gmail are optional integration paths documented below;
+they require the judge's own authenticated Google Cloud project and OAuth setup.
 
 ### Reproducible local setup
 
@@ -73,6 +122,9 @@ export GOOGLE_CALENDAR_CREDENTIALS="$PWD/client_secret_725797619054-gutqcc15kok5
 export GOOGLE_CALENDAR_TOKEN="$PWD/google-calendar-token.json"
 export GMAIL_NOTIFICATION_TO="your-real-email@gmail.com"
 export GMAIL_TOKEN="$PWD/gmail-token.json"
+# Optional live departure context (weather via Open-Meteo; traffic via Routes API)
+export OPEN_METEO_ENABLED=true
+export ROUTES_API_KEY="your-routes-key"
 ```
 
 The complete test suite is:

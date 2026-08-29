@@ -42,6 +42,8 @@ class GeminiClient:
         now: datetime | None = None,
         travel_minutes: int | None = None,
         commitment_start: datetime | None = None,
+        weather_observation: str | None = None,
+        traffic_observation: str | None = None,
     ) -> str:
         """Generates friendly, actionable copy using Gemini with deterministic fallback."""
         leave_str = leave_at.strftime("%H:%M") if leave_at else "soon"
@@ -55,7 +57,7 @@ class GeminiClient:
                 expected_delay = max(0, round((expected_arrival - commitment_start).total_seconds() / 60))
 
         defaults = {
-            AgentDecision.PREPARE: f"Time to get ready for {commitment_title}! You'll need to head out by {leave_str}.",
+            AgentDecision.PREPARE: f"Time to get ready for {commitment_title}! Leave by {leave_str}. Weather: {weather_observation or 'unavailable'}. Traffic: {traffic_observation or 'unavailable'}.",
             AgentDecision.LEAVE: f"Time to head out for {commitment_title} at {destination}. Leave now to arrive on time.",
             AgentDecision.REPLAN: f"Since you still haven't left, you'll arrive about {expected_delay} minutes later to {destination}.",
             AgentDecision.ESCALATE: f"Location or route unavailable for {commitment_title}. Please check your connection.",
@@ -79,6 +81,8 @@ class GeminiClient:
                 f"Departure time: {leave_str}\n"
                 f"Current time: {now.strftime('%H:%M') if now else 'unknown'}\n"
                 f"Estimated delay if stationary: {expected_delay} minutes\n"
+                f"Weather observation: {weather_observation or 'unavailable'}\n"
+                f"Traffic observation: {traffic_observation or 'unavailable'}\n"
                 f"Output only the notification text."
             )
             response = client.models.generate_content(

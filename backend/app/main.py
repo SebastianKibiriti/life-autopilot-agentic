@@ -11,6 +11,7 @@ except ImportError:
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, status
 
 from .agent import autonomous_evaluate, evaluate
+from .context import departure_context
 from .calendar import GoogleCalendarProvider, sync_calendar_events
 from .location import InMemoryLocationRepository, FirestoreLocationRepository
 from .models import (
@@ -193,7 +194,12 @@ def campus_resolve(query: str = Query(min_length=1)):
 @app.post("/api/v1/students/{student_id}/companion/fitness-suggestion", response_model=CompanionSuggestion)
 def fitness_suggestion(student_id: str = Depends(validate_student_id)):
     profile = companion_memory.profile(student_id)
-    generated = companion_gemini.generate_companion_suggestion(profile=profile.model_dump(mode="json"), upcoming_context="upcoming nutrition timetable and fitness calendar events")
+    weather, traffic = departure_context(now=datetime.now(timezone.utc), origin=None, destination=None)
+    generated = companion_gemini.generate_companion_suggestion(
+        profile=profile.model_dump(mode="json"),
+        upcoming_context=("upcoming nutrition timetable and fitness calendar events; "
+                          f"current conditions: weather={weather}; traffic={traffic}"),
+    )
     suggestion = create_fitness_suggestion(student_id, profile, generated=generated)
     return companion_memory.save_suggestion(suggestion)
 

@@ -3,9 +3,15 @@ set -euo pipefail
 
 BASE_URL="${LIFE_AUTOPILOT_URL:-http://127.0.0.1:8001}"
 STUDENT_ID="${LIFE_AUTOPILOT_STUDENT_ID:-nutrition-student-demo}"
+WEATHER_OPTIONS=("sunny, 24°C" "light rain, 18°C" "cool and windy, 16°C")
+TRAFFIC_OPTIONS=("clear roads" "moderate traffic" "busy roads near campus")
+WEATHER_OBSERVATION="${WEATHER_OBSERVATION:-${WEATHER_OPTIONS[$((RANDOM % ${#WEATHER_OPTIONS[@]}))]}}"
+TRAFFIC_OBSERVATION="${TRAFFIC_OBSERVATION:-${TRAFFIC_OPTIONS[$((RANDOM % ${#TRAFFIC_OPTIONS[@]}))]}}"
+export WEATHER_OBSERVATION TRAFFIC_OBSERVATION
 CLASS="$(date -u -v+3d '+%Y-%m-%dT14:00:00Z')"
 FITNESS="$(date -u -v+2d '+%Y-%m-%dT17:30:00Z')"
 
+echo "Selected conditions: $WEATHER_OBSERVATION; $TRAFFIC_OBSERVATION"
 echo "1/6 Saving learned student preferences (Firestore when enabled)"
 curl --fail-with-body -sS -X PUT "$BASE_URL/api/v1/students/$STUDENT_ID/companion/profile" -H 'Content-Type: application/json' \
   -d '{"interests":["nutrition","fitness"],"preferred_activities":["cycling","outdoor training"],"accepted_suggestions":["outdoor activity"],"rejected_suggestions":["gym promotion"]}'

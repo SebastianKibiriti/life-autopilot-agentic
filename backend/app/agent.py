@@ -9,6 +9,7 @@ All decisions are bounded to the explicit enum; no free-form LLM actions.
 from datetime import datetime, timezone
 
 from .gemini import GeminiClient
+from .context import departure_context
 from .models import (
     AgentDecision,
     AgentEvent,
@@ -116,9 +117,14 @@ def autonomous_evaluate(
 
     # --- Generate notification copy ---
     notification_body: str | None = None
+    weather_observation: str | None = None
+    traffic_observation: str | None = None
     notification_sent = False
 
     if decision not in (AgentDecision.NO_ACTION,):
+        weather_observation, traffic_observation = departure_context(
+            now=now, origin=current_location, destination=dest if current_location else None
+        )
         notification_body = gemini_client.generate_notification(
             decision=decision,
             commitment_title=commitment.title,
@@ -128,6 +134,8 @@ def autonomous_evaluate(
             now=now,
             travel_minutes=travel_minutes,
             commitment_start=commitment.start_time,
+            weather_observation=weather_observation,
+            traffic_observation=traffic_observation,
         )
         title_map = {
             AgentDecision.PREPARE: "⏰ Time to get ready",
@@ -171,4 +179,6 @@ def autonomous_evaluate(
         route_provider=route_provider,
         notification_sent=notification_sent,
         notification_body=notification_body,
+        weather_observation=weather_observation,
+        traffic_observation=traffic_observation,
     )

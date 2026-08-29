@@ -23,6 +23,7 @@ class PlacesResolver:
         "room b": (37.4275, -122.1697, "Room B, Engineering Quad"),
         "library": (37.4250, -122.1650, "Main Campus Library"),
         "student union": (37.4240, -122.1690, "Student Union Building"),
+        "lakeside office": (-26.1500, 28.0500, "Lakeside Office, Johannesburg"),
     }
 
     def __init__(self, api_key: str | None = None) -> None:

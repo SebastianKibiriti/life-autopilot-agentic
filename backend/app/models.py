@@ -208,6 +208,8 @@ class EvaluationResponse(BaseModel):
     route_provider: str
     notification_sent: bool = False
     notification_body: str | None = None
+    weather_observation: str | None = None
+    traffic_observation: str | None = None
 
 
 class TimetableItem(BaseModel):
