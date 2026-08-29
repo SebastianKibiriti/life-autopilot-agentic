@@ -120,6 +120,7 @@ def autonomous_evaluate(
     weather_observation: str | None = None
     traffic_observation: str | None = None
     notification_sent = False
+    meeting_contact_notification_sent = False
 
     if decision not in (AgentDecision.NO_ACTION,):
         weather_observation, traffic_observation = departure_context(
@@ -155,6 +156,14 @@ def autonomous_evaluate(
             now=now,
         )
         notification_sent = True
+        if commitment.meeting_contact_email and decision in (AgentDecision.REPLAN, AgentDecision.ESCALATE):
+            meeting_contact_notification_sent = notification_service.send_to_meeting_contact(
+                commitment_id=commitment.id,
+                recipient=commitment.meeting_contact_email,
+                subject=f"Schedule update: {commitment.title}",
+                body=notification_body or reason,
+                now=now,
+            )
     else:
         # Still log NO_ACTION for the activity timeline
         event_repo.save_event(
@@ -181,4 +190,5 @@ def autonomous_evaluate(
         notification_body=notification_body,
         weather_observation=weather_observation,
         traffic_observation=traffic_observation,
+        meeting_contact_notification_sent=meeting_contact_notification_sent,
     )

@@ -16,7 +16,7 @@ URGENT_NOW="$(date -u -v+14M '+%Y-%m-%dT%H:%M:%SZ')"
 echo "Selected conditions: $WEATHER_OBSERVATION; $TRAFFIC_OBSERVATION"
 echo "1/6 Creating the planned 10:40 client meeting at Lakeside Office"
 curl --fail-with-body -sS -X POST "$BASE_URL/api/v1/students/$STUDENT_ID/calendar/sync" -H 'Content-Type: application/json' \
-  -d "{\"events\":[{\"id\":\"client-meeting-lakeside\",\"summary\":\"10:40 team meeting with client\",\"location\":\"Lakeside Office\",\"start_time\":\"$PICKUP\"}]}"
+  -d "{\"events\":[{\"id\":\"client-meeting-lakeside\",\"summary\":\"10:40 team meeting with client\",\"location\":\"Lakeside Office\",\"meeting_contact_email\":\"sebastiankib@icloud.com\",\"start_time\":\"$PICKUP\"}]}"
 echo
 echo "2/6 Posting Sipho's fictional apartment-building home location"
 curl --fail-with-body -sS -X POST "$BASE_URL/api/v1/students/$STUDENT_ID/location" -H 'Content-Type: application/json' \

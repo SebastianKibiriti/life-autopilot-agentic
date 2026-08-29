@@ -85,6 +85,7 @@ class GoogleCalendarProvider:
                     start_time=start,
                     location=item.get("location"),
                     status=item.get("status", "confirmed"),
+                    meeting_contact_email=next((a.get("email") for a in item.get("attendees", []) if a.get("email")), None),
                 )
             )
         return events
@@ -124,6 +125,7 @@ def sync_calendar_events(
             title=event.summary,
             start_time=event.start_time,
             destination=event.location or "Unknown destination",
+            meeting_contact_email=event.meeting_contact_email,
             status=CommitmentStatus.ACTIVE,
         )
         if commitment_id in existing:

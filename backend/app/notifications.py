@@ -109,3 +109,18 @@ class NotificationService:
         saved = self._event_repo.save_event(student_id, event)
         self._sent[key] = now
         return saved
+
+    def send_to_meeting_contact(self, *, commitment_id: str | None, subject: str, body: str,
+                                recipient: str, now: datetime | None = None) -> bool:
+        """Send a separate meeting update; failures never break the user's decision."""
+        from .gmail import GmailNotificationProvider
+        try:
+            provider = GmailNotificationProvider(
+                credentials_path=os.getenv("GOOGLE_CALENDAR_CREDENTIALS", "client_secret.json"),
+                token_path=os.getenv("GMAIL_TOKEN", "gmail-token.json"),
+                recipient=recipient,
+            )
+            provider.send(subject=subject, body=body)
+            return True
+        except Exception:
+            return False

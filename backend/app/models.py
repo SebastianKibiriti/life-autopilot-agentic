@@ -35,6 +35,7 @@ class CalendarEvent(BaseModel):
     start_time: datetime
     location: str | None = None
     status: str = "confirmed"
+    meeting_contact_email: str | None = None
 
     @field_validator("start_time")
     @classmethod
@@ -138,6 +139,7 @@ class Commitment(BaseModel):
     title: str = Field(min_length=1)
     start_time: datetime
     destination: str = Field(min_length=1)
+    meeting_contact_email: str | None = None
     destination_coordinates: Location | None = None
     status: CommitmentStatus = CommitmentStatus.ACTIVE
 
@@ -210,6 +212,7 @@ class EvaluationResponse(BaseModel):
     notification_body: str | None = None
     weather_observation: str | None = None
     traffic_observation: str | None = None
+    meeting_contact_notification_sent: bool = False
 
 
 class TimetableItem(BaseModel):
