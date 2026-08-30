@@ -1,4 +1,4 @@
-# Life Autopilot architecture
+# Life Autopilot Agentic architecture
 
 ```mermaid
 flowchart TD

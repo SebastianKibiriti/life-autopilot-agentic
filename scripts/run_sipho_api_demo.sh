@@ -7,6 +7,8 @@ set -euo pipefail
 
 BASE_URL="${LIFE_AUTOPILOT_URL:-http://127.0.0.1:8001}"
 STUDENT_ID="${LIFE_AUTOPILOT_STUDENT_ID:-sipho-demo}"
+WEATHER_OBSERVATION="${WEATHER_OBSERVATION:-light rain, 17°C}"
+TRAFFIC_OBSERVATION="${TRAFFIC_OBSERVATION:-moderate traffic, highway delays}"
 NOW="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 LECTURE="$(date -u -v+60M '+%Y-%m-%dT%H:%M:%SZ')"
 
@@ -24,7 +26,7 @@ echo
 
 echo "3/6 Running autonomous evaluation (this may send Gmail)"
 curl --fail-with-body -sS -X POST \
-  "$BASE_URL/api/v1/students/$STUDENT_ID/autonomous-cycle?now=$NOW&student_has_started_moving=false"
+  "$BASE_URL/api/v1/students/$STUDENT_ID/autonomous-cycle?now=$NOW&student_has_started_moving=false&weather_observation=$(printf '%s' "$WEATHER_OBSERVATION" | jq -sRr @uri)&traffic_observation=$(printf '%s' "$TRAFFIC_OBSERVATION" | jq -sRr @uri)"
 echo
 
 echo "4/6 Checking the agent audit timeline"
@@ -33,7 +35,7 @@ echo
 
 echo "5/6 Re-evaluating after Sipho starts moving"
 curl --fail-with-body -sS -X POST \
-  "$BASE_URL/api/v1/students/$STUDENT_ID/autonomous-cycle?now=$NOW&student_has_started_moving=true"
+  "$BASE_URL/api/v1/students/$STUDENT_ID/autonomous-cycle?now=$NOW&student_has_started_moving=true&weather_observation=$(printf '%s' "$WEATHER_OBSERVATION" | jq -sRr @uri)&traffic_observation=$(printf '%s' "$TRAFFIC_OBSERVATION" | jq -sRr @uri)"
 echo
 
 echo "6/6 Recording the observed preparation behavior"

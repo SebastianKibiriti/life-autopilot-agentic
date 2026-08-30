@@ -100,7 +100,18 @@ class GoogleCalendarProvider:
             "start": {"dateTime": start_time.isoformat()},
             "end": {"dateTime": (start_time + timedelta(minutes=1)).isoformat()},
         }
-        return service.events().insert(calendarId=self.calendar_id, body=event).execute()
+        try:
+            return service.events().insert(calendarId=self.calendar_id, body=event).execute()
+        except Exception as error:
+            # Google Calendar rejects a repeated deterministic event ID with 409.
+            # Treat an existing event as success so demo retries are idempotent.
+            if getattr(error, "resp", None) is not None and getattr(error.resp, "status", None) == 409:
+                existing = service.events().get(
+                    calendarId=self.calendar_id, eventId=event_id
+                ).execute()
+                existing["life_autopilot_idempotent_replay"] = True
+                return existing
+            raise
 
 
 def sync_calendar_events(

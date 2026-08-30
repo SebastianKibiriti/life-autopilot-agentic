@@ -213,6 +213,7 @@ class EvaluationResponse(BaseModel):
     weather_observation: str | None = None
     traffic_observation: str | None = None
     meeting_contact_notification_sent: bool = False
+    meeting_contact_notification_body: str | None = None
 
 
 class TimetableItem(BaseModel):

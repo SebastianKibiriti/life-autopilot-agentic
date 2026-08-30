@@ -192,13 +192,18 @@ def campus_resolve(query: str = Query(min_length=1)):
 
 
 @app.post("/api/v1/students/{student_id}/companion/fitness-suggestion", response_model=CompanionSuggestion)
-def fitness_suggestion(student_id: str = Depends(validate_student_id)):
+def fitness_suggestion(
+    student_id: str = Depends(validate_student_id),
+    weather_observation: str | None = Query(default=None),
+    traffic_observation: str | None = Query(default=None),
+):
     profile = companion_memory.profile(student_id)
     weather, traffic = departure_context(now=datetime.now(timezone.utc), origin=None, destination=None)
     generated = companion_gemini.generate_companion_suggestion(
         profile=profile.model_dump(mode="json"),
         upcoming_context=("upcoming nutrition timetable and fitness calendar events; "
-                          f"current conditions: weather={weather}; traffic={traffic}"),
+                          f"current conditions: weather={weather_observation or weather}; "
+                          f"traffic={traffic_observation or traffic}"),
     )
     suggestion = create_fitness_suggestion(student_id, profile, generated=generated)
     return companion_memory.save_suggestion(suggestion)
@@ -428,6 +433,8 @@ def autonomous_cycle(
     student_id: str = Depends(validate_student_id),
     now: datetime | None = Query(default=None),
     student_has_started_moving: bool = Query(default=False),
+    weather_observation: str | None = Query(default=None),
+    traffic_observation: str | None = Query(default=None),
     commitment_repo: CommitmentRepository = Depends(get_commitment_repository),
     loc_repo=Depends(get_location_repository),
     ev_repo=Depends(get_event_repository),
@@ -453,6 +460,8 @@ def autonomous_cycle(
                 student_has_started_moving=student_has_started_moving,
                 event_repo=ev_repo,
                 notification_service=notif_service,
+                weather_observation=weather_observation,
+                traffic_observation=traffic_observation,
             )
         )
     return results

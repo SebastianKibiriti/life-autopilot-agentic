@@ -1,0 +1,556 @@
+============================================================
+FILE START: backend/app/planner.py
+============================================================
+
+1: from dataclasses import dataclass
+2: from datetime import datetime, timedelta
+3: 
+4: 
+5: @dataclass(frozen=True)
+6: class DeparturePlan:
+7:     preparation_at: datetime | None
+8:     leave_at: datetime | None
+9:     is_late: bool
+10:     route_provider: str
+11: 
+12: 
+13: def plan_departure(
+14:     *,
+15:     now: datetime,
+16:     commitment_start: datetime,
+17:     travel_minutes: int | None,
+18:     preparation_minutes: int,
+19:     arrival_buffer_minutes: int,
+20: ) -> DeparturePlan:
+21:     """Calculate thresholds without asking a language model to do arithmetic."""
+22:     if travel_minutes is None:
+23:         return DeparturePlan(None, None, False, "unavailable")
+24: 
+25:     leave_at = commitment_start - timedelta(
+26:         minutes=travel_minutes + arrival_buffer_minutes
+27:     )
+28:     preparation_at = leave_at - timedelta(minutes=preparation_minutes)
+29:     return DeparturePlan(
+30:         preparation_at=preparation_at,
+31:         leave_at=leave_at,
+32:         is_late=now >= leave_at,
+33:         route_provider="provided",
+34:     )
+35: 
+
+============================================================
+FILE END: backend/app/planner.py
+============================================================
+
+
+============================================================
+FILE START: backend/app/routing.py
+============================================================
+
+1: import math
+2: import os
+3: from datetime import datetime, timezone
+4: import httpx
+5: 
+6: from .models import (
+7:     Destination,
+8:     DestinationProvider,
+9:     Location,
+10:     RouteProvider,
+11:     TravelEstimate,
+12: )
+13: 
+14: 
+15: class PlacesResolver:
+16:     """Resolves human-readable destinations to coordinates."""
+17: 
+18:     DEFAULT_CAMPUS_PLACES = {
+19:         "engineering building b": (37.4275, -122.1697, "Engineering Building B, Stanford, CA"),
+20:         "engineering building a": (37.4280, -122.1700, "Engineering Building A, Stanford, CA"),
+21:         "building c": (37.4265, -122.1680, "Building C, Science Quad, Stanford, CA"),
+22:         "room a": (37.4280, -122.1700, "Room A, Engineering Quad"),
+23:         "room b": (37.4275, -122.1697, "Room B, Engineering Quad"),
+24:         "library": (37.4250, -122.1650, "Main Campus Library"),
+25:         "student union": (37.4240, -122.1690, "Student Union Building"),
+26:         "lakeside office": (-26.1500, 28.0500, "Lakeside Office, Johannesburg"),
+27:     }
+28: 
+29:     def __init__(self, api_key: str | None = None) -> None:
+30:         self.api_key = api_key or os.getenv("PLACES_API_KEY")
+31:         self._cache: dict[str, Destination] = {}
+32: 
+33:     def resolve(self, query: str) -> Destination | None:
+34:         cleaned = query.strip().lower()
+35:         if not cleaned:
+36:             return None
+37:         if cleaned in self._cache:
+38:             return self._cache[cleaned]
+39: 
+40:         if cleaned in self.DEFAULT_CAMPUS_PLACES:
+41:             lat, lng, addr = self.DEFAULT_CAMPUS_PLACES[cleaned]
+42:             dest = Destination(
+43:                 label=query,
+44:                 latitude=lat,
+45:                 longitude=lng,
+46:                 formatted_address=addr,
+47:                 resolution_confidence=1.0,
+48:                 provider=DestinationProvider.CACHED,
+49:             )
+50:             self._cache[cleaned] = dest
+51:             return dest
+52: 
+53:         if self.api_key:
+54:             try:
+55:                 with httpx.Client(timeout=5.0) as client:
+56:                     resp = client.post(
+57:                         "https://places.googleapis.com/v1/places:searchText",
+58:                         headers={
+59:                             "Content-Type": "application/json",
+60:                             "X-Goog-Api-Key": self.api_key,
+61:                             "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location",
+62:                         },
+63:                         json={"textQuery": query},
+64:                     )
+65:                     if resp.status_code == 200:
+66:                         data = resp.json()
+67:                         places = data.get("places", [])
+68:                         if places:
+69:                             place = places[0]
+70:                             loc = place.get("location", {})
+71:                             latitude = loc.get("latitude")
+72:                             longitude = loc.get("longitude")
+73:                             if latitude is None or longitude is None:
+74:                                 return None
+75:                             dest = Destination(
+76:                                 label=place.get("displayName", {}).get("text", query),
+77:                                 latitude=latitude,
+78:                                 longitude=longitude,
+79:                                 formatted_address=place.get("formattedAddress"),
+80:                                 resolution_confidence=0.95,
+81:                                 provider=DestinationProvider.PLACES,
+82:                             )
+83:                             self._cache[cleaned] = dest
+84:                             return dest
+85:             except Exception:
+86:                 return None
+87: 
+88:         return None
+89: 
+90: 
+91: class RoutesEstimator:
+92:     """Estimates walking travel duration and distance with Google Routes API or fallback."""
+93: 
+94:     def __init__(self, api_key: str | None = None) -> None:
+95:         self.api_key = api_key or os.getenv("ROUTES_API_KEY")
+96: 
+97:     def estimate_walking(
+98:         self, origin: Location, destination: Destination
+99:     ) -> TravelEstimate:
+100:         # 1. If API Key present, try Google Routes API
+101:         if self.api_key:
+102:             try:
+103:                 with httpx.Client(timeout=5.0) as client:
+104:                     resp = client.post(
+105:                         "https://routes.googleapis.com/directions/v2:computeRoutes",
+106:                         headers={
+107:                             "Content-Type": "application/json",
+108:                             "X-Goog-Api-Key": self.api_key,
+109:                             "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
+110:                         },
+111:                         json={
+112:                             "origin": {
+113:                                 "location": {
+114:                                     "latLng": {
+115:                                         "latitude": origin.latitude,
+116:                                         "longitude": origin.longitude,
+117:                                     }
+118:                                 }
+119:                             },
+120:                             "destination": {
+121:                                 "location": {
+122:                                     "latLng": {
+123:                                         "latitude": destination.latitude,
+124:                                         "longitude": destination.longitude,
+125:                                     }
+126:                                 }
+127:                             },
+128:                             "travelMode": "WALK",
+129:                         },
+130:                     )
+131:                     if resp.status_code == 200:
+132:                         data = resp.json()
+133:                         routes = data.get("routes", [])
+134:                         if routes:
+135:                             route = routes[0]
+136:                             dist_meters = route.get("distanceMeters", 0)
+137:                             dur_str = route.get("duration", "0s").rstrip("s")
+138:                             dur_seconds = int(float(dur_str))
+139:                             dur_minutes = max(1, math.ceil(dur_seconds / 60))
+140:                             return TravelEstimate(
+141:                                 origin=origin,
+142:                                 destination=destination,
+143:                                 mode="walking",
+144:                                 distance_meters=dist_meters,
+145:                                 duration_seconds=dur_seconds,
+146:                                 duration_minutes=dur_minutes,
+147:                                 provider=RouteProvider.ROUTES,
+148:                                 estimated_at=datetime.now(timezone.utc),
+149:                             )
+150:             except Exception:
+151:                 pass
+152: 
+153:         # 2. High accuracy Haversine walking calculation fallback
+154:         lat1, lon1 = origin.latitude, origin.longitude
+155:         lat2, lon2 = destination.latitude, destination.longitude
+156:         r = 6371000  # Earth radius in meters
+157: 
+158:         phi1 = math.radians(lat1)
+159:         phi2 = math.radians(lat2)
+160:         delta_phi = math.radians(lat2 - lat1)
+161:         delta_lambda = math.radians(lon2 - lon1)
+162: 
+163:         a = (
+164:             math.sin(delta_phi / 2.0) ** 2
+165:             + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+166:         )
+167:         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+168:         direct_distance = r * c
+169: 
+170:         # Average pedestrian walking speed: ~1.35 m/s (~4.86 km/h)
+171:         # Factor in urban pedestrian path network factor ~1.25
+172:         pedestrian_distance = int(direct_distance * 1.25)
+173:         walking_speed_mps = 1.35
+174:         duration_seconds = int(pedestrian_distance / walking_speed_mps)
+175:         duration_minutes = max(1, math.ceil(duration_seconds / 60))
+176: 
+177:         return TravelEstimate(
+178:             origin=origin,
+179:             destination=destination,
+180:             mode="walking",
+181:             distance_meters=pedestrian_distance,
+182:             duration_seconds=duration_seconds,
+183:             duration_minutes=duration_minutes,
+184:             provider=RouteProvider.FALLBACK,
+185:             estimated_at=datetime.now(timezone.utc),
+186:         )
+
+============================================================
+FILE END: backend/app/routing.py
+============================================================
+
+
+============================================================
+FILE START: backend/tests/test_planner.py
+============================================================
+
+1: import unittest
+2: from datetime import datetime, timezone
+3: 
+4: from app.agent import evaluate
+5: from app.models import AgentDecision, Commitment, EvaluationRequest
+6: from app.planner import plan_departure
+7: 
+8: 
+9: class DeparturePlannerTests(unittest.TestCase):
+10:     def setUp(self):
+11:         self.start = datetime(2026, 8, 18, 12, 0, tzinfo=timezone.utc)
+12: 
+13:     def test_calculates_preparation_and_leave_thresholds(self):
+14:         plan = plan_departure(
+15:             now=datetime(2026, 8, 18, 11, 20, tzinfo=timezone.utc),
+16:             commitment_start=self.start,
+17:             travel_minutes=22,
+18:             preparation_minutes=12,
+19:             arrival_buffer_minutes=5,
+20:         )
+21:         self.assertEqual(plan.leave_at, datetime(2026, 8, 18, 11, 33, tzinfo=timezone.utc))
+22:         self.assertEqual(plan.preparation_at, datetime(2026, 8, 18, 11, 21, tzinfo=timezone.utc))
+23:         self.assertFalse(plan.is_late)
+24: 
+25:     def test_missing_route_escalates(self):
+26:         request = EvaluationRequest(
+27:             now=datetime(2026, 8, 18, 11, 20, tzinfo=timezone.utc),
+28:             commitment=Commitment(title="Class", start_time=self.start, destination="Room A"),
+29:             travel_minutes=None,
+30:         )
+31:         plan, decision, _ = evaluate(request)
+32:         self.assertEqual(plan.route_provider, "unavailable")
+33:         self.assertEqual(decision, AgentDecision.ESCALATE)
+34: 
+35:     def test_past_leave_threshold_replans_if_student_is_not_moving(self):
+36:         request = EvaluationRequest(
+37:             now=datetime(2026, 8, 18, 11, 40, tzinfo=timezone.utc),
+38:             commitment=Commitment(title="Class", start_time=self.start, destination="Room A"),
+39:             travel_minutes=22,
+40:             preparation_minutes=12,
+41:             arrival_buffer_minutes=5,
+42:             student_has_started_moving=False,
+43:         )
+44:         _, decision, reason = evaluate(request)
+45:         self.assertEqual(decision, AgentDecision.REPLAN)
+46:         self.assertIn("movement", reason)
+47: 
+48:     def test_preparation_window_requests_prepare(self):
+49:         request = EvaluationRequest(
+50:             now=datetime(2026, 8, 18, 11, 22, tzinfo=timezone.utc),
+51:             commitment=Commitment(title="Class", start_time=self.start, destination="Room A"),
+52:             travel_minutes=22,
+53:             preparation_minutes=12,
+54:             arrival_buffer_minutes=5,
+55:         )
+56:         _, decision, _ = evaluate(request)
+57:         self.assertEqual(decision, AgentDecision.PREPARE)
+58: 
+59: 
+60: if __name__ == "__main__":
+61:     unittest.main()
+
+============================================================
+FILE END: backend/tests/test_planner.py
+============================================================
+
+
+============================================================
+FILE START: backend/tests/test_location_routing.py
+============================================================
+
+1: import unittest
+2: from datetime import datetime, timezone
+3: 
+4: from app.models import Location, LocationProvider, Destination, DestinationProvider, RouteProvider
+5: from app.location import InMemoryLocationRepository
+6: from app.routing import PlacesResolver, RoutesEstimator
+7: 
+8: 
+9: class LocationAndRoutingTests(unittest.TestCase):
+10:     def test_location_repository(self):
+11:         repo = InMemoryLocationRepository()
+12:         self.assertIsNone(repo.get_current_location("student-1"))
+13: 
+14:         loc = Location(latitude=37.4275, longitude=-122.1697, provider=LocationProvider.GPS)
+15:         saved = repo.save_location("student-1", loc)
+16:         self.assertEqual(saved.latitude, 37.4275)
+17: 
+18:         fetched = repo.get_current_location("student-1")
+19:         self.assertIsNotNone(fetched)
+20:         self.assertEqual(fetched.latitude, 37.4275)
+21: 
+22:     def test_places_resolver_cached(self):
+23:         resolver = PlacesResolver()
+24:         dest = resolver.resolve("Engineering Building B")
+25:         self.assertEqual(dest.label, "Engineering Building B")
+26:         self.assertEqual(dest.latitude, 37.4275)
+27:         self.assertEqual(dest.provider, DestinationProvider.CACHED)
+28: 
+29:     def test_places_resolver_unknown_fallback(self):
+30:         resolver = PlacesResolver()
+31:         dest = resolver.resolve("Unknown Room 999")
+32:         self.assertIsNone(dest)
+33: 
+34:     def test_routes_estimator_walking_fallback(self):
+35:         estimator = RoutesEstimator()
+36:         origin = Location(latitude=37.4200, longitude=-122.1600)
+37:         dest = Destination(label="Target Hall", latitude=37.4275, longitude=-122.1697)
+38: 
+39:         estimate = estimator.estimate_walking(origin, dest)
+40:         self.assertGreater(estimate.distance_meters, 0)
+41:         self.assertGreater(estimate.duration_seconds, 0)
+42:         self.assertGreater(estimate.duration_minutes, 0)
+43:         self.assertEqual(estimate.provider, RouteProvider.FALLBACK)
+44: 
+45: 
+46: if __name__ == "__main__":
+47:     unittest.main()
+
+============================================================
+FILE END: backend/tests/test_location_routing.py
+============================================================
+
+
+============================================================
+FILE START: backend/tests/test_autonomous_loop.py
+============================================================
+
+1: import unittest
+2: from datetime import datetime, timezone
+3: 
+4: from app.agent import autonomous_evaluate
+5: from app.gemini import GeminiClient
+6: from app.models import (
+7:     AgentDecision,
+8:     Commitment,
+9:     Location,
+10:     LocationProvider,
+11:     PreparationProfile,
+12:     RouteProvider,
+13:     TravelEstimate,
+14: )
+15: from app.notifications import NotificationService
+16: from app.repositories import (
+17:     InMemoryAgentEventRepository,
+18:     InMemoryPreparationProfileRepository,
+19: )
+20: from app.routing import PlacesResolver
+21: 
+22: 
+23: class FakeRoutesEstimator:
+24:     def estimate_walking(self, origin, destination):
+25:         return TravelEstimate(
+26:             origin=origin,
+27:             destination=destination,
+28:             distance_meters=1800,
+29:             duration_seconds=1320,
+30:             duration_minutes=22,
+31:             provider=RouteProvider.FALLBACK,
+32:             estimated_at=datetime(2026, 8, 18, 13, 0, tzinfo=timezone.utc),
+33:         )
+34: 
+35: 
+36: class FakeGemini:
+37:     last_kwargs = None
+38:     def generate_notification(self, **kwargs):
+39:         self.last_kwargs = kwargs
+40:         return "Time to get ready for class."
+41: 
+42: 
+43: class AutonomousLoopTests(unittest.TestCase):
+44:     def setUp(self):
+45:         self.events = InMemoryAgentEventRepository()
+46:         self.notifications = NotificationService(self.events)
+47:         self.now = datetime(2026, 8, 18, 11, 22, tzinfo=timezone.utc)
+48:         self.commitment = Commitment(
+49:             title="Database Systems",
+50:             start_time=datetime(2026, 8, 18, 12, 0, tzinfo=timezone.utc),
+51:             destination="Engineering Building B",
+52:         )
+53:         self.location = Location(
+54:             latitude=37.4200,
+55:             longitude=-122.1600,
+56:             provider=LocationProvider.SIMULATED,
+57:             captured_at=self.now,
+58:         )
+59:         self.profile = PreparationProfile(
+60:             student_id="student-demo",
+61:             average_prep_minutes=12,
+62:             arrival_buffer_minutes=5,
+63:         )
+64: 
+65:     def test_prepare_sends_notification_and_logs_event(self):
+66:         response = autonomous_evaluate(
+67:             student_id="student-demo",
+68:             now=self.now,
+69:             commitment=self.commitment,
+70:             current_location=self.location,
+71:             preparation_profile=self.profile,
+72:             event_repo=self.events,
+73:             notification_service=self.notifications,
+74:             places_resolver=PlacesResolver(),
+75:             routes_estimator=FakeRoutesEstimator(),
+76:             gemini=FakeGemini(),
+77:         )
+78: 
+79:         self.assertEqual(response.decision, AgentDecision.PREPARE)
+80:         self.assertTrue(response.notification_sent)
+81:         self.assertEqual(response.leave_at, datetime(2026, 8, 18, 11, 33, tzinfo=timezone.utc))
+82:         events = self.events.list_events("student-demo")
+83:         self.assertEqual(len(events), 1)
+84:         self.assertEqual(events[0].action, "NOTIFICATION_SENT")
+85: 
+86:     def test_supplied_departure_observations_are_preserved(self):
+87:         gemini = FakeGemini()
+88:         autonomous_evaluate(
+89:             student_id="student-demo", now=self.now, commitment=self.commitment,
+90:             current_location=self.location, preparation_profile=self.profile,
+91:             event_repo=self.events, notification_service=self.notifications,
+92:             places_resolver=PlacesResolver(), routes_estimator=FakeRoutesEstimator(),
+93:             gemini=gemini, weather_observation="light rain, 17°C",
+94:             traffic_observation="moderate traffic, highway delays",
+95:         )
+96:         self.assertEqual(gemini.last_kwargs["weather_observation"], "light rain, 17°C")
+97:         self.assertEqual(gemini.last_kwargs["traffic_observation"], "moderate traffic, highway delays")
+98: 
+99:     def test_unknown_destination_escalates_instead_of_inventing_coordinates(self):
+100:         unknown = self.commitment.model_copy(update={"destination": "Mystery Annex 12"})
+101:         response = autonomous_evaluate(
+102:             student_id="student-demo",
+103:             now=self.now,
+104:             commitment=unknown,
+105:             current_location=self.location,
+106:             preparation_profile=self.profile,
+107:             event_repo=self.events,
+108:             notification_service=self.notifications,
+109:             places_resolver=PlacesResolver(),
+110:             routes_estimator=FakeRoutesEstimator(),
+111:             gemini=FakeGemini(),
+112:         )
+113: 
+114:         self.assertEqual(response.decision, AgentDecision.ESCALATE)
+115:         self.assertEqual(response.route_provider, "unavailable")
+116: 
+117:     def test_missing_location_escalates(self):
+118:         response = autonomous_evaluate(
+119:             student_id="student-demo",
+120:             now=self.now,
+121:             commitment=self.commitment,
+122:             current_location=None,
+123:             preparation_profile=self.profile,
+124:             event_repo=self.events,
+125:             notification_service=self.notifications,
+126:             gemini=FakeGemini(),
+127:         )
+128:         self.assertEqual(response.decision, AgentDecision.ESCALATE)
+129: 
+130:     def test_notification_dedup_does_not_persist_a_second_event(self):
+131:         kwargs = dict(
+132:             student_id="student-demo",
+133:             now=self.now,
+134:             commitment=self.commitment,
+135:             current_location=self.location,
+136:             preparation_profile=self.profile,
+137:             event_repo=self.events,
+138:             notification_service=self.notifications,
+139:             places_resolver=PlacesResolver(),
+140:             routes_estimator=FakeRoutesEstimator(),
+141:             gemini=FakeGemini(),
+142:         )
+143:         autonomous_evaluate(**kwargs)
+144:         autonomous_evaluate(**kwargs)
+145:         self.assertEqual(len(self.events.list_events("student-demo")), 1)
+146: 
+147:     def test_replan_notification_states_expected_arrival_delay(self):
+148:         response = autonomous_evaluate(
+149:             student_id="student-demo",
+150:             now=datetime(2026, 8, 18, 11, 40, tzinfo=timezone.utc),
+151:             commitment=self.commitment,
+152:             current_location=self.location,
+153:             preparation_profile=self.profile,
+154:             event_repo=self.events,
+155:             notification_service=self.notifications,
+156:             places_resolver=PlacesResolver(),
+157:             routes_estimator=FakeRoutesEstimator(),
+158:             gemini=GeminiClient(),
+159:         )
+160:         self.assertEqual(response.decision, AgentDecision.REPLAN)
+161:         self.assertIn("arrive about", response.notification_body)
+162:         self.assertIn("Engineering Building B", response.notification_body)
+163: 
+164: 
+165: class PreparationLearningTests(unittest.TestCase):
+166:     def test_observation_updates_bounded_average(self):
+167:         repo = InMemoryPreparationProfileRepository()
+168:         first = repo.update_with_observation("student-demo", "default", 20)
+169:         second = repo.update_with_observation("student-demo", "default", 10)
+170: 
+171:         self.assertEqual(first.sample_count, 2)
+172:         self.assertEqual(second.sample_count, 3)
+173:         self.assertGreaterEqual(second.average_prep_minutes, 5)
+174:         self.assertLessEqual(second.average_prep_minutes, 60)
+175:         self.assertGreater(second.confidence, first.confidence)
+176: 
+177: 
+178: if __name__ == "__main__":
+179:     unittest.main()
+
+============================================================
+FILE END: backend/tests/test_autonomous_loop.py
+============================================================

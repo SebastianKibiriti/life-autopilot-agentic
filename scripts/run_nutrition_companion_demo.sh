@@ -24,7 +24,7 @@ curl --fail-with-body -sS -X POST "$BASE_URL/api/v1/students/$STUDENT_ID/calenda
   -d "{\"events\":[{\"id\":\"nutrition-class\",\"summary\":\"Clinical Nutrition\",\"location\":\"N204\",\"start_time\":\"$CLASS\"},{\"id\":\"fitness-event\",\"summary\":\"Cycling training\",\"location\":\"Campus Cycling Track\",\"start_time\":\"$FITNESS\"}]}"
 echo
 echo "4/6 Self-initiating a personalized multi-option fitness suggestion"
-SUGGESTION="$(curl --fail-with-body -sS -X POST "$BASE_URL/api/v1/students/$STUDENT_ID/companion/fitness-suggestion")"
+SUGGESTION="$(curl --fail-with-body -sS -X POST "$BASE_URL/api/v1/students/$STUDENT_ID/companion/fitness-suggestion?weather_observation=$(printf '%s' "$WEATHER_OBSERVATION" | jq -sRr @uri)&traffic_observation=$(printf '%s' "$TRAFFIC_OBSERVATION" | jq -sRr @uri)")"
 echo "$SUGGESTION"
 SUGGESTION_ID="$(printf '%s' "$SUGGESTION" | jq -r .id)"
 echo "5/6 Answering a follow-up from stored suggestion memory (no new Gemini call)"
